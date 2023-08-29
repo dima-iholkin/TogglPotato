@@ -1,7 +1,5 @@
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using TogglPotato.WebAPI.Models;
@@ -18,7 +16,6 @@ public class OrganizeTheDailyTimeEntries_Endpoint
         );
     }
 
-    // public static async Task<Results<Ok<List<TimeEntry>, BadRequest>>> Handler(
     public static async Task<Results<Ok<List<TimeEntry>>, ProblemHttpResult>> Handler(
         [FromBody] RequestBody requestBody,
         HttpContext httpContext,
@@ -28,9 +25,16 @@ public class OrganizeTheDailyTimeEntries_Endpoint
     {
         HttpClient httpClient = httpClientFactory.CreateClient("toggl_api");
 
-        using (HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/me/time_entries"))
+        Dictionary<string, string?> queryString = new Dictionary<string, string?>()
         {
-            requestMessage.Headers.Add("Content-Type", "application/json");
+            { "start_date", requestBody.Date.ToString("yyyy-MM-dd") },
+            { "end_date", requestBody.Date.AddDays(1).ToString("yyyy-MM-dd") }
+        };
+        string uri = Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString("/api/v9/me/time_entries", queryString);
+        using (HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
+        {
+            // requestMessage.Headers.Add("Content-Type", "application/json");
+            requestMessage.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
 
             string basicToken = Convert.ToBase64String(
                 ASCIIEncoding.ASCII.GetBytes(
@@ -45,13 +49,29 @@ public class OrganizeTheDailyTimeEntries_Endpoint
             {
                 List<TimeEntry> timeEntries = await response.Content.ReadFromJsonAsync<List<TimeEntry>>()
                     ?? new List<TimeEntry>();
-                logger.LogDebug(
-                    "Time Entries on Date {Date}: \r\n {TimeEntries}",
-                    requestBody.Date,
-                    timeEntries
-                );
 
-                return TypedResults.Ok(timeEntries);
+                // logger.LogDebug(
+                //     "Time Entries on Date {Date}: \r\n {TimeEntries}",
+                //     requestBody.Date,
+                //     timeEntries
+                // );
+
+                List<TimeEntry> sortedTimeEntries = timeEntries.OrderBy(te => te.Start).ToList();
+
+                TimeSpan timeSum = new TimeSpan();
+                foreach (TimeEntry te in sortedTimeEntries)
+                {
+                    timeSum = timeSum + new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration);
+                }
+
+                string timespanString = string.Format("{0}h{1}m{2}s",
+                    timeSum.Days * 24 + timeSum.Hours,
+                    timeSum.Minutes,
+                    timeSum.Seconds
+                );
+                logger.LogDebug("Total time of daily time entries: {TimeSum}.", timespanString);
+
+                return TypedResults.Ok(sortedTimeEntries);
             }
             else
             {

@@ -8,7 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient("toggl_api", (client) => {
-    client.BaseAddress = new Uri("https://api.track.toggl.com/api/v9");
+    client.BaseAddress = new Uri("https://api.track.toggl.com");
 });
 
 var app = builder.Build();
