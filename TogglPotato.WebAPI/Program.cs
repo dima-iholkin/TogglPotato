@@ -1,4 +1,5 @@
 using TogglPotato.WebAPI.Endpoints.OrganizeTheDailyTimeEntries;
+using TogglPotato.WebAPI.HttpClients;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,9 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHttpClient("toggl_api", (client) => {
-    client.BaseAddress = new Uri("https://api.track.toggl.com");
-});
+builder.Services.AddHttpClient<ITogglHttpService, TogglHttpService>();
+// builder.Services.AddHttpClient("toggl_api", (client) => {
+//     client.BaseAddress = new Uri("https://api.track.toggl.com");
+// });
 
 var app = builder.Build();
 
