@@ -1,5 +1,5 @@
-using TogglPotato.WebAPI.Models;
 using TimeZoneConverter;
+using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.Helpers;
 
@@ -7,18 +7,7 @@ public static class DateTimeHelper
 {
     public static (DateTime startTime, DateTime endTime) GenerateUtcTimeForDailyTimeEntries(string timezone, DateTime date)
     {
-        TimeZoneInfo? tzInfo;
-
-        // if (timezone == "Europe/Kyiv")
-        // {
-        //     tzInfo = TimeZoneInfo.FindSystemTimeZoneById("Europe/Kiev");
-        // }
-
-        string tzString = TZConvert.IanaToWindows(timezone);
-
-        tzInfo = TimeZoneInfo.FindSystemTimeZoneById(tzString);
-
-        TimeSpan offset = tzInfo.GetUtcOffset(date);
+        TimeSpan offset = DateTimeHelper.GetTimezoneOffset(timezone, date);
 
         DateTime _startTime = date.Subtract(offset);
         DateTime _endTime = date.AddDays(1).Subtract(offset).AddTicks(-1);
@@ -47,5 +36,15 @@ public static class DateTimeHelper
         }
 
         return true;
+    }
+
+    public static TimeSpan GetTimezoneOffset(string timezone, DateTime date)
+    {
+        string timezoneWindowsString = TZConvert.IanaToWindows(timezone);
+
+        TimeZoneInfo? timezoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timezoneWindowsString);
+
+        TimeSpan offset = timezoneInfo.GetUtcOffset(date);
+        return offset;
     }
 }

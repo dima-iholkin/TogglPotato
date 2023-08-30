@@ -71,7 +71,47 @@ public class OrganizeTheDailyTimeEntries_Endpoint
 
         sortedTimeEntries.ForEach(te => te.Start = te.Start.ToUniversalTime());
 
-        return TypedResults.Ok(sortedTimeEntries);
+        TimeSpan dailyTimeCursor = new TimeSpan();
+        TimeSpan utcOffset = DateTimeHelper.GetTimezoneOffset(userProfile.Timezone, requestBody.Date);
+
+        // debug:
+        // int count = 1;
+
+        List<TimeEntry> responseTimeEntries = new List<TimeEntry>();
+
+        sortedTimeEntries.ForEach(async (te) =>
+        {
+            DateTime newStartTime = requestBody.Date.Add(dailyTimeCursor).Subtract(utcOffset);
+
+            // debug:
+            // if (count <= 2)
+            // {
+
+            if (te.Start != newStartTime)
+            {
+                te.Start = newStartTime;
+                te.Stop = newStartTime.AddSeconds(te.Duration);
+
+                // debug:
+                TimeEntry teResponse = await togglHttpService.UpdateTimeEntry(te, requestBody.ApiKey, logger);
+
+                responseTimeEntries.Add(teResponse);
+            }
+            else
+            {
+                responseTimeEntries.Add(te);
+            }
+
+            // }
+            // debug:
+
+            dailyTimeCursor = dailyTimeCursor.Add(new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration));
+
+            // debug:
+            // count++;
+        });
+
+        return TypedResults.Ok(responseTimeEntries);
     }
 }
 
