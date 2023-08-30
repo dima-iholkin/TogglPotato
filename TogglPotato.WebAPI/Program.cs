@@ -1,4 +1,4 @@
-using TogglPotato.WebAPI.Endpoints.OrganizeTheDailyTimeEntries;
+using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 using TogglPotato.WebAPI.HttpClients;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,9 +9,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient<ITogglHttpService, TogglHttpService>();
-// builder.Services.AddHttpClient("toggl_api", (client) => {
-//     client.BaseAddress = new Uri("https://api.track.toggl.com");
-// });
 
 var app = builder.Build();
 
@@ -22,7 +19,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-OrganizeTheDailyTimeEntries_Endpoint.Map(app);
+OrganizeDailyTimeEntries_Endpoint.Map(app);
 
 app.UseHttpsRedirection();
 

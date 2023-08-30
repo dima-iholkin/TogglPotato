@@ -20,7 +20,7 @@ public static class DateTimeHelper
         TimeSpan totalTime = new TimeSpan();
         foreach (TimeEntry te in timeEntries)
         {
-            totalTime = totalTime + new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration);
+            totalTime =+ new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration);
         }
 
         string timespanString = string.Format("{0}h{1}m{2}s",
