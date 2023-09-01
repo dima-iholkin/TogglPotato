@@ -31,4 +31,9 @@ public class TimeEntry
 
     [JsonPropertyName("workspace_id")]
     public int WorkspaceId { get; set; }
+
+    // Custom:
+
+    [JsonIgnore]
+    public bool Modified { get; set; } = false;
 }
