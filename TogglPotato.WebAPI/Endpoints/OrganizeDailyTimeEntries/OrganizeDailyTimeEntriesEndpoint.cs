@@ -1,10 +1,14 @@
-using Microsoft.AspNetCore.Http.HttpResults;
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using OneOf;
-using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries.ValidationErrors;
+using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries.Models;
 using TogglPotato.WebAPI.Helpers;
 using TogglPotato.WebAPI.HttpClients;
+using TogglPotato.WebAPI.HttpClients.Models;
+using TogglPotato.WebAPI.HttpClients.TogglApiErrors;
 using TogglPotato.WebAPI.Models;
+using TogglPotato.WebAPI.ValidationErrors;
+using TogglPotato.WebAPI.Validators;
 
 namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
@@ -22,108 +26,150 @@ public class OrganizeDailyTimeEntriesEndpoint(
         );
     }
 
-    private string? _togglApiKey;
+    // TODO: It's questionable to have this data as class fields.
+    private TogglApiKey? _togglApiKey;
     private DateTime _date;
 
     /// <summary>
     /// Handles the HTTP request, organizes the time entries in Toggl and returns the daily records in final order
     /// after the changes are done.
     /// </summary>
-    public async Task<Results<Ok<List<TimeEntry>>, ProblemHttpResult>> Handler(
-        RequestBody requestBody
-    )
+    public async Task<IResult> Handler(RequestBody requestBody)
     {
-        (_togglApiKey, _date) = requestBody;
+        // 1. Validate the input values:
 
-        // 1. Get the daily time entries:
+        // 1.1 Validate the Toggl API key.
 
-        (List<TimeEntry> originalTimeEntries, string userTimezone) = await GetDailyTimeEntriesAndUserTimezoneAsync();
+        OneOf<TogglApiKey, TogglApiKeyValidationError> togglApiKeyResult = TogglApiKey.ConvertFrom(
+            requestBody.TogglApiKey
+        );
 
-        // 2. Sort and prepare the time entries to modify in Toggl:
+        if (togglApiKeyResult.IsT1)
+        {
+            return TypedResults.BadRequest(new { TogglApiKeyValidationError.Message });
+        }
 
-        var sortAndPreparationResult = SortAndPrepareTimeEntries(originalTimeEntries, userTimezone);
+        _togglApiKey = togglApiKeyResult.AsT0;
 
-        // 2.1. Handle the potential errors:
+        // 1.2 Validate the date.
 
-        if (sortAndPreparationResult.IsT1)
+        if (requestBody.Date == default(DateTime))
+        {
+            return TypedResults.BadRequest(new { Message = "Please provide a date." });
+        }
+
+        if (InputDateValidator.Validate(requestBody.Date) == false)
+        {
+            return TypedResults.BadRequest(new { Message = "Please provide date without a time." });
+        }
+
+        _date = requestBody.Date;
+
+        // 2.1. Get the user's timezone from UserProfile:
+
+        OneOf<UserProfile, TogglApiErrorResult> userProfileResult = await togglHttpService.GetUserProfile(
+            _togglApiKey, logger
+        );
+
+        // 2.2. Deal with the Toggl API errors:
+
+        if (userProfileResult.IsT1)
+        {
+            var error = userProfileResult.AsT1.Error;
+
+            IResult result = error.Match<IResult>(
+                (TogglApiKeyError togglApiError) => TypedResults.BadRequest(new { TogglApiKeyError.Message }),
+                (TogglServerError togglServerError) => Results.Json(
+                    new { togglServerError.Message }, statusCode: (int)HttpStatusCode.InternalServerError
+                ),
+                (TooManyRequestsError tooManyRequest) => Results.Json(
+                    new { TooManyRequestsError.Message }, statusCode: (int)HttpStatusCode.TooManyRequests
+                ),
+                (UnexpectedTogglApiError unexpectedTogglApiError) => Results.Json(
+                    new { unexpectedTogglApiError.Message }, statusCode: (int)HttpStatusCode.InternalServerError
+                )
+            );
+
+            return result;
+        }
+
+        // 2.3 Get the correct TimeZoneInfo.
+
+        TimeZoneInfo timezoneInfo = userProfileResult.AsT0.TimeZoneInfo;
+
+        // 3.1. Get the daily time entries:
+
+        List<TimeEntry> originalTimeEntries = await togglHttpService.GetDailyTimeEntries(
+            timezoneInfo, this._date, _togglApiKey!, logger
+        );
+
+        // 3.2. Deal with the Toggl API errors:
+
+        // TODO: Handle the potential Toggl API errors.
+
+        // 4. Sort and prepare the time entries to modify in Toggl:
+
+        OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> sortAndPrepareResult =
+            SortAndPrepareTimeEntries(originalTimeEntries, timezoneInfo);
+
+        // 5.1. Handle the potential errors:
+
+        if (sortAndPrepareResult.IsT1)
         {
 #pragma warning disable IDE0059 // Unnecessary assignment
-            TotalTimeExceedsFullDayValidationError totalTimeExceedsFullDay = sortAndPreparationResult.AsT1;
+            DailyTotalTimeExceedsFullDayValidationError totalTimeExceedsFullDay = sortAndPrepareResult.AsT1;
 #pragma warning restore IDE0059
 
             return TypedResults.Problem(
-                detail: TotalTimeExceedsFullDayValidationError.Message,
+                detail: DailyTotalTimeExceedsFullDayValidationError.Message,
                 statusCode: StatusCodes.Status409Conflict
             );
         }
 
-        // 2.2. Convert the OneOf result to the correct happy path type:
+        // 5.2. Get the correct prepared TimeEntries.
 
-        if (sortAndPreparationResult.IsT0 == false)
-        {
-            throw new Exception("OneOf result type is wrong.");
-        }
+        List<TimeEntry> sortedTimeEntries = sortAndPrepareResult.AsT0;
 
-        List<TimeEntry> sortedTimeEntries = sortAndPreparationResult.AsT0;
-
-        // 3. Upload the time entries into Toggl and return the results.
+        // 6.1. Upload the time entries into Toggl and return the results.
 
         List<TimeEntry> responseTimeEntries = await UploadTimeEntriesAsync(sortedTimeEntries);
+
+        // 6.2 Handle the Toggl API errors.
+
+        // TODO: Implement it.
+
+        // 6.3 Return the correct modified List of Time Entries.
 
         return TypedResults.Ok(responseTimeEntries);
     }
 
     // Helper methods:
 
-    private async Task<(List<TimeEntry> timeEntries, string userTimezone)> GetDailyTimeEntriesAndUserTimezoneAsync()
+    private OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> SortAndPrepareTimeEntries(
+        List<TimeEntry> timeEntries, TimeZoneInfo timezoneInfo
+    )
     {
-        (string userTimezone, _) = await togglHttpService.GetUserProfile(_togglApiKey!, logger);
+        // 1. Check the daily total time:
 
-        (DateTime startTime, DateTime endTime) = DateTimeHelper.GenerateUtcTimeForDailyTimeEntries(userTimezone, _date);
+        bool totalTimeDoesntExceedFullDay = DateTimeHelper.CheckTotalTimeDoesntExceedFullDay(timeEntries, logger);
 
-        List<TimeEntry> timeEntries = await togglHttpService.GetDailyTimeEntries(
-            startTime, endTime, _togglApiKey!, logger
-        );
-
-        timeEntries.ForEach(te =>
+        if (totalTimeDoesntExceedFullDay == false)
         {
-            te.Start = te.Start.ToUniversalTime();
-        });
-
-        return (timeEntries, userTimezone);
-    }
-
-    private OneOf<
-        List<TimeEntry>, TotalTimeExceedsFullDayValidationError
-    > SortAndPrepareTimeEntries(List<TimeEntry> timeEntries, string userTimezone)
-    {
-        // Check the total time:
-
-        bool totalTimeUpTo24Hours = DateTimeHelper.CheckDailyTimeIsUpTo24Hours(timeEntries, logger);
-
-        if (totalTimeUpTo24Hours == false)
-        {
-            return new TotalTimeExceedsFullDayValidationError();
-            // return TypedResults.Problem(
-            //     detail: "Total daily time of time entries was above 24 hours.",
-            //     statusCode: StatusCodes.Status409Conflict
-            // );
+            return new DailyTotalTimeExceedsFullDayValidationError();
         }
 
-        // Sort the time entries:
+        // 2. Sort the time entries:
 
         List<TimeEntry> sortedTimeEntries = timeEntries.OrderBy(te => te.Start).ThenBy(te => te.Id).ToList();
 
-        // Prepare the time entries for upload:
+        // 3. Modify the time entries for upload:
 
-        TimeSpan dailyTimeCursor = new TimeSpan();
-        TimeSpan utcOffset = DateTimeHelper.GetTimezoneOffset(userTimezone, _date);
-
-        List<TimeEntry> responseTimeEntries = new List<TimeEntry>();
+        TimeSpan dailyTimeCount = new TimeSpan();
+        TimeSpan utcOffset = DateTimeHelper.GetTimezoneOffset(timezoneInfo, _date);
 
         sortedTimeEntries.ForEach(te =>
         {
-            DateTime newStartTime = _date.Add(dailyTimeCursor).Subtract(utcOffset);
+            DateTime newStartTime = _date.Add(dailyTimeCount).Subtract(utcOffset);
 
             if (te.Start != newStartTime)
             {
@@ -133,7 +179,7 @@ public class OrganizeDailyTimeEntriesEndpoint(
                 te.Modified = true;
             }
 
-            dailyTimeCursor = dailyTimeCursor.Add(new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration));
+            dailyTimeCount = dailyTimeCount.Add(new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration));
         });
 
         return sortedTimeEntries;
