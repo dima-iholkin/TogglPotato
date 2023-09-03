@@ -1,7 +1,8 @@
+using TogglPotato.WebAPI.Endpoints;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 using TogglPotato.WebAPI.HttpClients;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container:
 
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<Organizer>();
 builder.Services.AddHttpClient<ITogglHttpService, TogglHttpService>();
 builder.Services.AddScoped<OrganizeDailyTimeEntriesEndpoint>();
 
@@ -22,7 +24,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-OrganizeDailyTimeEntriesEndpoint.Map(app);
+EndpointsRouter.Map(app);
 
 app.UseHttpsRedirection();
 

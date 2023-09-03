@@ -1,12 +1,11 @@
 using System.Net;
 using System.Text;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using OneOf;
 using TogglPotato.WebAPI.Helpers;
+using TogglPotato.WebAPI.HttpClients.ErrorHandling;
+using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
 using TogglPotato.WebAPI.HttpClients.Models;
-using TogglPotato.WebAPI.HttpClients.TogglApiErrors;
 using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.HttpClients;
@@ -14,14 +13,16 @@ namespace TogglPotato.WebAPI.HttpClients;
 public class TogglHttpService : ITogglHttpService
 {
     private readonly HttpClient _httpClient;
+    private readonly ILogger<TogglHttpService> _logger;
 
-    public TogglHttpService(HttpClient httpClient)
+    public TogglHttpService(HttpClient httpClient, ILogger<TogglHttpService> logger)
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri("https://api.track.toggl.com");
+        _logger = logger;
     }
 
-    public async ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfile(TogglApiKey togglApiKey, ILogger logger)
+    public async ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(TogglApiKey togglApiKey)
     {
         // 1. Configure and send the Toggl API request.
 
@@ -30,9 +31,7 @@ public class TogglHttpService : ITogglHttpService
         using (HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/api/v9/me"))
         {
             requestMessage.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
-
             requestMessage.Headers.AddApiKeyAuthorization(togglApiKey);
-
             response = await _httpClient.SendAsync(requestMessage);
         }
 
@@ -40,33 +39,7 @@ public class TogglHttpService : ITogglHttpService
 
         if (response.StatusCode != HttpStatusCode.OK)
         {
-            OneOf<
-                TogglApiKeyError,
-                TogglServerError,
-                TooManyRequestsError,
-                UnexpectedTogglApiError
-            > togglApiError = response.StatusCode switch
-            {
-                // 400 error codes:
-                HttpStatusCode.Forbidden => new TogglApiKeyError(),
-                HttpStatusCode.TooManyRequests => new TooManyRequestsError(),
-                // 500 error codes:
-                HttpStatusCode.BadGateway => new TogglServerError(HttpStatusCode.BadGateway),
-                HttpStatusCode.InternalServerError => new TogglServerError(HttpStatusCode.InternalServerError),
-                HttpStatusCode.ServiceUnavailable => new TogglServerError(HttpStatusCode.ServiceUnavailable),
-                HttpStatusCode.GatewayTimeout => new TogglServerError(HttpStatusCode.GatewayTimeout),
-                // other codes codes:
-                _ => new UnexpectedTogglApiError(response.StatusCode)
-            };
-
-            TogglApiErrorResult errorResult = new TogglApiErrorResult(togglApiError);
-
-            logger.LogWarning(
-                "Toggl API UserProfile request returned error with StatusCode {StatusCode}.",
-                response.StatusCode.ToString()
-            );
-            logger.LogWarning("Toggl API error message: {ErrorMessage}", await response.Content.ReadAsStringAsync());
-
+            TogglApiErrorResult errorResult = await TogglApiErrorHandler.HandleHttpErrorsAsync(response, _logger);
             return errorResult;
         }
 
@@ -86,17 +59,17 @@ public class TogglHttpService : ITogglHttpService
         return userProfile;
     }
 
-    public async ValueTask<List<TimeEntry>> GetDailyTimeEntries(
-        TimeZoneInfo timezoneInfo, DateTime date, TogglApiKey togglApiKey, ILogger logger
+    public async ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
+        TimeZoneInfo timezoneInfo, DateTime date, TogglApiKey togglApiKey
     )
     {
-        // 1. Generate the start and end times:
+        // 1. Generate the start and end times for the day.
 
         (DateTime startTime, DateTime endTime) = DateTimeHelper.GenerateUtcTimeForDailyTimeEntries(
             timezoneInfo, date
         );
 
-        // 2. Configure and send a request to Toggl API:
+        // 2. Configure and send a request to Toggl API.
 
         HttpResponseMessage? response;
 
@@ -110,30 +83,26 @@ public class TogglHttpService : ITogglHttpService
         using (HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, uri))
         {
             requestMessage.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
-
             requestMessage.Headers.AddApiKeyAuthorization(togglApiKey);
-
             response = await _httpClient.SendAsync(requestMessage);
         }
 
-        // 3. Deal with the error HTTP responses:
-
-        // TODO: Do a proper Toggl API error handling.
+        // 3. Deal with the API error responses.
 
         if (response.StatusCode != HttpStatusCode.OK)
         {
-            logger.LogWarning(
-                "Toggl daily time entries request returned StatusCode {StatusCode}.",
-                response.StatusCode.ToString()
-            );
-            throw new Exception(await response.Content.ReadAsStringAsync());
+            TogglApiErrorResult errorResult = await TogglApiErrorHandler.HandleHttpErrorsAsync(response, _logger);
+            return errorResult;
         }
 
-        // 4. Return the List<TimeEntry> on success:
+        // 4. Deserialize the List<TimeEntry>.
 
-        // TODO: Why return new empty List, if the content wasn't deserialized correctly?
-        List<TimeEntry> timeEntries = await response.Content.ReadFromJsonAsync<List<TimeEntry>>()
-            ?? new List<TimeEntry>();
+        List<TimeEntry>? timeEntries = await response.Content.ReadFromJsonAsync<List<TimeEntry>>();
+
+        if (timeEntries == null)
+        {
+            throw new Exception("List<TimeEntry> wasn't deserialized correctly.");
+        }
 
         timeEntries.ForEach(te =>
         {
@@ -143,47 +112,76 @@ public class TogglHttpService : ITogglHttpService
         return timeEntries;
     }
 
-    public async ValueTask<TimeEntry> UpdateTimeEntry(
-        TimeEntry timeEntry, TogglApiKey togglApiKey, ILogger logger
+    private async ValueTask<OneOf<TimeEntry, TogglApiErrorResult>> UpdateTimeEntryAsync(
+        TimeEntry timeEntry, TogglApiKey togglApiKey
     )
     {
-        HttpResponseMessage? response;
-
         // 1. Configure and send a request to Toggl API.
 
+        HttpResponseMessage? response;
+
         string uri = $"/api/v9/workspaces/{timeEntry.WorkspaceId}/time_entries/{timeEntry.Id}";
-        using (HttpRequestMessage requestMessage = new HttpRequestMessage(
-            HttpMethod.Put,
-            uri
-        ))
+        using (HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Put, uri))
         {
-            // TODO: this is not ideal, should make a copy of timeEntry object.
-            timeEntry.Id = default(long);
+            // 1.1 Format the sent TimeEntry.
+            TimeEntry newTimeEntry = timeEntry.Clone();
+            newTimeEntry.Id = default(long);
+            newTimeEntry.Start = new DateTime(timeEntry.Start.Ticks, DateTimeKind.Utc);
+            newTimeEntry.Stop = new DateTime(timeEntry.Stop.Ticks, DateTimeKind.Utc);
 
-            timeEntry.Start = new DateTime(timeEntry.Start.Ticks, DateTimeKind.Utc);
-            timeEntry.Stop = new DateTime(timeEntry.Stop.Ticks, DateTimeKind.Utc);
-
-            requestMessage.Content = JsonContent.Create<TimeEntry>(timeEntry);
-
+            // 1.2 Configure the request.
+            requestMessage.Content = JsonContent.Create<TimeEntry>(newTimeEntry);
             requestMessage.Headers.AddApiKeyAuthorization(togglApiKey);
-
             response = _httpClient.Send(requestMessage);
         }
 
-        // 2. Deal with the error HTTP responses.
+        // 2. Deal with the API error responses.
 
         if (response.IsSuccessStatusCode == false)
         {
-            logger.LogWarning("HTTP response error code: {ErrorCode}", response.StatusCode);
-            logger.LogWarning(
-                "HTTP response error message: {ErrorMessage}", await response.Content.ReadAsStringAsync()
-            );
+            TogglApiErrorResult errorResult = await TogglApiErrorHandler.HandleHttpErrorsAsync(response, _logger);
+            return errorResult;
         }
 
-        // 3. Return the updated TimeEntry on success.
+        // 3. Deserialize the Time Entry.
 
-        TimeEntry teResponse = await response.Content.ReadFromJsonAsync<TimeEntry>()
-            ?? throw new NotImplementedException();
-        return teResponse;
+        TimeEntry? updatedTimeEntry = await response.Content.ReadFromJsonAsync<TimeEntry>();
+
+        if (updatedTimeEntry == null)
+        {
+            throw new Exception("TimeEntry wasn't deserialized correctly.");
+        }
+
+        // 4. Return the updated Time Entry.
+
+        return updatedTimeEntry;
+    }
+
+    public async Task<OneOf<List<TimeEntry>, TogglApiErrorResult>> UpdateTimeEntriesAsync(
+        List<TimeEntry> timeEntries, TogglApiKey togglApiKey
+    )
+    {
+        List<TimeEntry> responseTimeEntries = new List<TimeEntry>();
+
+        foreach (TimeEntry te in timeEntries)
+        {
+            if (te.Modified == true)
+            {
+                OneOf<TimeEntry, TogglApiErrorResult> updateResult = await this.UpdateTimeEntryAsync(te, togglApiKey);
+
+                if (updateResult.IsT1)
+                {
+                    return updateResult.AsT1;
+                }
+
+                responseTimeEntries.Add(updateResult.AsT0);
+            }
+            else
+            {
+                responseTimeEntries.Add(te);
+            }
+        }
+
+        return responseTimeEntries;
     }
 }

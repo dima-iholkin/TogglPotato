@@ -1,7 +1,7 @@
 using OneOf;
-using TogglPotato.WebAPI.HttpClients.TogglApiErrors;
+using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models.TogglApiErrors;
 
-namespace TogglPotato.WebAPI.HttpClients.Models;
+namespace TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
 
 public class TogglApiErrorResult
 {

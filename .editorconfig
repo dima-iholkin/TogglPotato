@@ -29,3 +29,6 @@ dotnet_diagnostic.IDE0034.severity = none
 
 # IDE0063: "using" statement can be simplified
 dotnet_diagnostic.IDE0063.severity = none
+
+# IDE0003: "this." can be simplified
+dotnet_diagnostic.IDE0003.severity = none

@@ -1,16 +1,18 @@
 using OneOf;
-using TogglPotato.WebAPI.HttpClients.Models;
+using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
 using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.HttpClients;
 
 public interface ITogglHttpService
 {
-    ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfile(TogglApiKey apiKey, ILogger logger);
+    ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(TogglApiKey apiKey);
 
-    ValueTask<List<TimeEntry>> GetDailyTimeEntries(
-        TimeZoneInfo timezoneInfo, DateTime date, TogglApiKey apiKey, ILogger logger
+    ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
+        TimeZoneInfo timezoneInfo, DateTime date, TogglApiKey apiKey
     );
 
-    ValueTask<TimeEntry> UpdateTimeEntry(TimeEntry timeEntry, TogglApiKey apiKey, ILogger logger);
+    Task<OneOf<List<TimeEntry>, TogglApiErrorResult>> UpdateTimeEntriesAsync(
+        List<TimeEntry> timeEntries, TogglApiKey togglApiKey
+    );
 }

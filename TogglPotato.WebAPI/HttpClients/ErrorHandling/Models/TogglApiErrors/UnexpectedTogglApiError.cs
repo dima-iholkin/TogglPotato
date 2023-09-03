@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace TogglPotato.WebAPI.HttpClients.TogglApiErrors;
+namespace TogglPotato.WebAPI.HttpClients.ErrorHandling.Models.TogglApiErrors;
 
 public class UnexpectedTogglApiError
 {

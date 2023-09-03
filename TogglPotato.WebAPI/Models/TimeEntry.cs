@@ -4,6 +4,29 @@ namespace TogglPotato.WebAPI.Models;
 
 public class TimeEntry
 {
+    // Cloning:
+
+    public TimeEntry Clone()
+    {
+        return new TimeEntry()
+        {
+            Id = this.Id,
+            Billable = this.Billable,
+            CreatedWith = this.CreatedWith,
+            Description = this.Description,
+            Duration = this.Duration,
+            ProjectId = this.ProjectId,
+            Start = this.Start,
+            Stop = this.Stop,
+            TaskId = this.TaskId,
+            UserId = this.UserId,
+            WorkspaceId = this.WorkspaceId,
+            Modified = this.Modified
+        };
+    }
+
+    // Properties:
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public long Id { get; set; }
 
@@ -32,7 +55,7 @@ public class TimeEntry
     [JsonPropertyName("workspace_id")]
     public int WorkspaceId { get; set; }
 
-    // Custom:
+    // Custom property:
 
     [JsonIgnore]
     public bool Modified { get; set; } = false;
