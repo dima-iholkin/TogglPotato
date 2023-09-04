@@ -10,12 +10,12 @@ using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.HttpClients;
 
-public class TogglHttpService : ITogglHttpService
+public class TogglApiService : ITogglApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly ILogger<TogglHttpService> _logger;
+    private readonly ILogger<TogglApiService> _logger;
 
-    public TogglHttpService(HttpClient httpClient, ILogger<TogglHttpService> logger)
+    public TogglApiService(HttpClient httpClient, ILogger<TogglApiService> logger)
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri("https://api.track.toggl.com");

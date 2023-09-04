@@ -4,7 +4,7 @@ using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.HttpClients;
 
-public interface ITogglHttpService
+public interface ITogglApiService
 {
     ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(TogglApiKey apiKey);
 

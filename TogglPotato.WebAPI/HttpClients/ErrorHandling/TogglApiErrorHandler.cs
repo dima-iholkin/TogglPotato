@@ -7,22 +7,6 @@ namespace TogglPotato.WebAPI.HttpClients.ErrorHandling;
 
 public static class TogglApiErrorHandler
 {
-    public static IResult HandleTogglHttpServiceErrors(TogglApiErrorResult errorResult)
-    {
-        return errorResult.Error.Match<IResult>(
-                (TogglApiKeyError togglApiError) => TypedResults.BadRequest(new { TogglApiKeyError.Message }),
-                (TogglServerError togglServerError) => Results.Json(
-                    new { togglServerError.Message }, statusCode: (int)HttpStatusCode.InternalServerError
-                ),
-                (TooManyRequestsError tooManyRequest) => Results.Json(
-                    new { TooManyRequestsError.Message }, statusCode: (int)HttpStatusCode.TooManyRequests
-                ),
-                (UnexpectedTogglApiError unexpectedTogglApiError) => Results.Json(
-                    new { unexpectedTogglApiError.Message }, statusCode: (int)HttpStatusCode.InternalServerError
-                )
-            );
-    }
-
     public static async Task<TogglApiErrorResult> HandleHttpErrorsAsync(HttpResponseMessage response, ILogger logger)
     {
         OneOf<TogglApiKeyError, TogglServerError, TooManyRequestsError, UnexpectedTogglApiError> togglApiError =
@@ -49,5 +33,22 @@ public static class TogglApiErrorHandler
         logger.LogWarning("Toggl API error message: {ErrorMessage}", await response.Content.ReadAsStringAsync());
 
         return errorResult;
+    }
+
+    public static IResult HandleTogglApiServiceErrors(TogglApiErrorResult errorResult)
+    {
+        IResult httpResult = errorResult.Error.Match<IResult>(
+                (TogglApiKeyError togglApiError) => TypedResults.BadRequest(new { TogglApiKeyError.Message }),
+                (TogglServerError togglServerError) => Results.Json(
+                    new { togglServerError.Message }, statusCode: (int)HttpStatusCode.InternalServerError
+                ),
+                (TooManyRequestsError tooManyRequest) => Results.Json(
+                    new { TooManyRequestsError.Message }, statusCode: (int)HttpStatusCode.TooManyRequests
+                ),
+                (UnexpectedTogglApiError unexpectedTogglApiError) => Results.Json(
+                    new { unexpectedTogglApiError.Message }, statusCode: (int)HttpStatusCode.InternalServerError
+                )
+        );
+        return httpResult;
     }
 }

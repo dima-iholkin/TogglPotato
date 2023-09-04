@@ -1,5 +1,4 @@
 using OneOf;
-using OneOf.Types;
 using TogglPotato.WebAPI.ValidationErrors;
 
 namespace TogglPotato.WebAPI.Models;
@@ -13,7 +12,7 @@ public class TogglApiKey
         Value = togglApiKey;
     }
 
-    // Public factory:
+    // Converter factory:
 
     public static OneOf<TogglApiKey, TogglApiKeyValidationError> ConvertFrom(string togglApiKey)
     {

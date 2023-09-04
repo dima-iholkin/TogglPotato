@@ -11,7 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<Organizer>();
-builder.Services.AddHttpClient<ITogglHttpService, TogglHttpService>();
+builder.Services.AddHttpClient<ITogglApiService, TogglApiService>();
 builder.Services.AddScoped<OrganizeDailyTimeEntriesEndpoint>();
 
 var app = builder.Build();

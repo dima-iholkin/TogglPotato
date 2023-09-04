@@ -15,7 +15,6 @@ public class UserProfile
         }
 
         string windowsTimezoneName = TZConvert.IanaToWindows(timezone);
-
         TimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(windowsTimezoneName);
     }
 

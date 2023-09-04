@@ -11,7 +11,7 @@ namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
 public class OrganizeDailyTimeEntriesEndpoint(
     Organizer organizer,
-    ITogglHttpService togglHttpService
+    ITogglApiService togglHttpService
 )
 {
     private TogglApiKey? _togglApiKey;
@@ -65,7 +65,7 @@ public class OrganizeDailyTimeEntriesEndpoint(
         if (userProfileResult.IsT1)
         {
             TogglApiErrorResult errorResult = userProfileResult.AsT1;
-            IResult result = TogglApiErrorHandler.HandleTogglHttpServiceErrors(errorResult);
+            IResult result = TogglApiErrorHandler.HandleTogglApiServiceErrors(errorResult);
             return result;
         }
 
@@ -83,7 +83,7 @@ public class OrganizeDailyTimeEntriesEndpoint(
         if (timeEntriesResult.IsT1)
         {
             TogglApiErrorResult errorResult = timeEntriesResult.AsT1;
-            IResult result = TogglApiErrorHandler.HandleTogglHttpServiceErrors(errorResult);
+            IResult result = TogglApiErrorHandler.HandleTogglApiServiceErrors(errorResult);
             return result;
         }
 
@@ -128,7 +128,7 @@ public class OrganizeDailyTimeEntriesEndpoint(
         if (timeEntriesResult.IsT1)
         {
             TogglApiErrorResult errorResult = timeEntriesResult.AsT1;
-            IResult result = TogglApiErrorHandler.HandleTogglHttpServiceErrors(errorResult);
+            IResult result = TogglApiErrorHandler.HandleTogglApiServiceErrors(errorResult);
             return result;
         }
 
