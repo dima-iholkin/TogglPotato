@@ -124,7 +124,7 @@ public class TogglHttpService : ITogglHttpService
         using (HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Put, uri))
         {
             // 1.1 Format the sent TimeEntry.
-            TimeEntry newTimeEntry = timeEntry.Clone();
+            TimeEntry newTimeEntry = (TimeEntry)timeEntry.Clone();
             newTimeEntry.Id = default(long);
             newTimeEntry.Start = new DateTime(timeEntry.Start.Ticks, DateTimeKind.Utc);
             newTimeEntry.Stop = new DateTime(timeEntry.Stop.Ticks, DateTimeKind.Utc);

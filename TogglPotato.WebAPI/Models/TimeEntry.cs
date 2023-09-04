@@ -2,27 +2,14 @@ using System.Text.Json.Serialization;
 
 namespace TogglPotato.WebAPI.Models;
 
-public class TimeEntry
+public class TimeEntry : ICloneable
 {
-    // Cloning:
+    // Clone:
 
-    public TimeEntry Clone()
+    public object Clone()
     {
-        return new TimeEntry()
-        {
-            Id = this.Id,
-            Billable = this.Billable,
-            CreatedWith = this.CreatedWith,
-            Description = this.Description,
-            Duration = this.Duration,
-            ProjectId = this.ProjectId,
-            Start = this.Start,
-            Stop = this.Stop,
-            TaskId = this.TaskId,
-            UserId = this.UserId,
-            WorkspaceId = this.WorkspaceId,
-            Modified = this.Modified
-        };
+        TimeEntry newTimeEntry = (TimeEntry)this.MemberwiseClone();
+        return newTimeEntry;
     }
 
     // Properties:
