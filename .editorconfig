@@ -1,0 +1,40 @@
+# Remove the line below if you want to inherit .editorconfig settings from higher directories
+root = true
+
+# C# files
+[*.cs]
+
+#### Core EditorConfig Options ####
+
+# Indentation and spacing
+# indent_size = 4
+# indent_style = space
+# tab_width = 4
+
+#### .NET Coding Conventions ####
+
+# this. and Me. preferences
+dotnet_style_qualification_for_method = true
+
+#### Diagnostic configuration ####
+
+# CA1000: Do not declare static members on generic types
+dotnet_diagnostic.CA1000.severity = warning
+
+# IDE0090: Simplify "new" expression
+dotnet_diagnostic.IDE0090.severity = none
+
+# IDE0034: "default" expression can be simplified
+dotnet_diagnostic.IDE0034.severity = none
+
+# IDE0063: "using" statement can be simplified
+dotnet_diagnostic.IDE0063.severity = none
+
+# IDE0003: "this." can be simplified
+dotnet_diagnostic.IDE0003.severity = none
+
+# IDE0270: Null check can be simplified
+dotnet_diagnostic.IDE0270.severity = none
+
+# IDE0290: Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none
