@@ -28,7 +28,7 @@ public class Organizer(ILogger<Organizer> logger)
         // 3. Modify the Time Entries before an upload.
 
         TimeSpan dailyTimeCount = new TimeSpan();
-        TimeSpan utcOffset = DateTimeHelper.GetTimezoneOffset(timezoneInfo, date);
+        TimeSpan utcOffset = timezoneInfo.GetTimeZoneOffset(date);
 
         sortedTimeEntries.ForEach(te =>
         {

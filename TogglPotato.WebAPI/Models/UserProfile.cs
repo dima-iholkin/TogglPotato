@@ -1,32 +1,15 @@
-using TimeZoneConverter;
-
 namespace TogglPotato.WebAPI.Models;
 
 public class UserProfile
 {
-    // Init:
+    // Constructors:
 
-    // TODO: Deal with the potential unknown timezone names and so on.
-    public UserProfile(string timezone)
+    public UserProfile(TimeZoneInfo tzInfo)
     {
-        if (String.IsNullOrEmpty(timezone))
-        {
-            throw new ArgumentException("timezone is null or empty", nameof(timezone));
-        }
-
-        string windowsTimezoneName = TZConvert.IanaToWindows(timezone);
-        TimeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(windowsTimezoneName);
+        TimeZoneInfo = tzInfo;
     }
 
     // Properties:
 
     public TimeZoneInfo TimeZoneInfo { get; init; }
-
-    // Deconstructors:
-
-    public void Deconstruct(out TimeZoneInfo tzInfo, out string? _)
-    {
-        tzInfo = TimeZoneInfo;
-        _ = null;
-    }
 }

@@ -9,10 +9,7 @@ using TogglPotato.WebAPI.Validators;
 
 namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
-public class OrganizeDailyTimeEntriesEndpoint(
-    Organizer organizer,
-    ITogglApiService togglHttpService
-)
+public class OrganizeDailyTimeEntriesEndpoint(Organizer organizer, ITogglApiService togglHttpService)
 {
     private TogglApiKey? _togglApiKey;
     private DateTime _date;
@@ -95,7 +92,9 @@ public class OrganizeDailyTimeEntriesEndpoint(
 
         if (originalTimeEntries.Count == 0)
         {
-            return TypedResults.NotFound(new { Message = "There are no Time Entries on the given date." });
+            string notFoundMessage =
+                "There are no time entries on the given date. Please provide a date with time entries.";
+            return TypedResults.NotFound(new { Message = notFoundMessage });
         }
 
         // 4.1 Sort and prepare the time entries to modify at Toggl.
