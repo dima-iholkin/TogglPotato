@@ -9,10 +9,7 @@ using TogglPotato.WebAPI.Validators;
 
 namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
-public class OrganizeDailyTimeEntriesEndpoint(
-    Organizer organizer,
-    ITogglApiService togglHttpService
-)
+public class OrganizeDailyTimeEntriesEndpoint(Organizer organizer, ITogglApiService togglHttpService)
 {
     private TogglApiKey? _togglApiKey;
     private DateTime _date;

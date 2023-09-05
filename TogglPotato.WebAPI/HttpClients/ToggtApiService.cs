@@ -13,12 +13,14 @@ namespace TogglPotato.WebAPI.HttpClients;
 public class TogglApiService : ITogglApiService
 {
     private readonly HttpClient _httpClient;
+    private readonly TimeZoneHelper _tzHelper;
     private readonly ILogger<TogglApiService> _logger;
 
-    public TogglApiService(HttpClient httpClient, ILogger<TogglApiService> logger)
+    public TogglApiService(HttpClient httpClient, TimeZoneHelper tzHelper, ILogger<TogglApiService> logger)
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri("https://api.track.toggl.com");
+        _tzHelper = tzHelper;
         _logger = logger;
     }
 
@@ -55,7 +57,7 @@ public class TogglApiService : ITogglApiService
 
         // 4. Return the UserProfile on success.
 
-        UserProfile userProfile = userProfileResponse.ConvertToUserProfile();
+        UserProfile userProfile = userProfileResponse.ConvertToUserProfile(_tzHelper);
         return userProfile;
     }
 
@@ -65,7 +67,7 @@ public class TogglApiService : ITogglApiService
     {
         // 1. Generate the start and end times for the day.
 
-        (DateTime startTime, DateTime endTime) = DateTimeHelper.GenerateUtcTimeForDailyTimeEntries(
+        (DateTime startTime, DateTime endTime) = DateTimeHelper.GenerateUtcTimeRangeForDailyTimeEntries(
             timezoneInfo, date
         );
 
