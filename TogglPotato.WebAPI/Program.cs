@@ -28,7 +28,7 @@ builder.Services.AddHttpClient<ITogglApiService, TogglApiService>()
     .AddPolicyHandler(DefaultRetryPolicy.GetRetryPolicy());
 builder.Services.AddScoped<OrganizeDailyTimeEntriesEndpoint>();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the API Versioning:
 IVersionedEndpointRouteBuilder versionedApi = app.NewVersionedApi();
