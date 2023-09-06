@@ -6,13 +6,15 @@ namespace TogglPotato.WebAPI.HttpClients;
 
 public interface ITogglApiService
 {
-    ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(TogglApiKey togglApiKey);
+    ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
+        TogglApiKey togglApiKey, CancellationToken cancellationToken
+    );
 
     ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
-        TimeZoneInfo tzInfo, DateOnly date, TogglApiKey apiKey
+        TimeZoneInfo tzInfo, DateOnly date, TogglApiKey apiKey, CancellationToken cancellationToken
     );
 
     Task<OneOf<List<TimeEntry>, TogglApiErrorResult>> UpdateTimeEntriesAsync(
-        List<TimeEntry> timeEntries, TogglApiKey togglApiKey
+        List<TimeEntry> timeEntries, TogglApiKey togglApiKey, CancellationToken cancellationToken
     );
 }
