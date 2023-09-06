@@ -22,7 +22,7 @@ public class OrganizeDailyTimeEntriesEndpoint(
     /// Handles the HTTP request, organizes the time entries in Toggl and returns the daily records in final order
     /// after the changes are done.
     /// </summary>
-    public async Task<IResult> Handler(RequestBody requestBody)
+    public async Task<IResult> Handler(RequestBody requestBody, CancellationToken cancellationToken)
     {
         // 1. Validate the input values.
 
@@ -60,7 +60,7 @@ public class OrganizeDailyTimeEntriesEndpoint(
         // 2.1 Get the UserProfile.
 
         OneOf<UserProfile, TogglApiErrorResult> userProfileResult = await togglHttpService.GetUserProfileAsync(
-            this._togglApiKey
+            this._togglApiKey, cancellationToken
         );
 
         // 2.2 Deal with the Toggl API errors.
@@ -87,8 +87,9 @@ public class OrganizeDailyTimeEntriesEndpoint(
 
         // 3.1 Get the daily time entries.
 
-        OneOf<List<TimeEntry>, TogglApiErrorResult> timeEntriesResult =
-            await togglHttpService.GetDailyTimeEntriesAsync(timezoneInfo, this._date, this._togglApiKey);
+        OneOf<List<TimeEntry>, TogglApiErrorResult> timeEntriesResult = await togglHttpService.GetDailyTimeEntriesAsync(
+            timezoneInfo, this._date, this._togglApiKey, cancellationToken
+        );
 
         // 3.2 Deal with the Toggl API errors.
 
@@ -115,7 +116,7 @@ public class OrganizeDailyTimeEntriesEndpoint(
         // 4.1 Sort and prepare the time entries to modify at Toggl.
 
         OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> sortAndPrepareResult =
-            organizer.SortAndModifyTimeEntries(originalTimeEntries, timezoneInfo, this._date);
+            organizer.SortAndModifyTimeEntries(originalTimeEntries, timezoneInfo, this._date, cancellationToken);
 
         // 4.2 Handle the potential errors.
 
@@ -134,7 +135,7 @@ public class OrganizeDailyTimeEntriesEndpoint(
         // 5.1 Upload the modified time entries into Toggl and get the results.
 
         OneOf<List<TimeEntry>, TogglApiErrorResult> uploadResult = await togglHttpService.UpdateTimeEntriesAsync(
-            sortedTimeEntries, this._togglApiKey
+            sortedTimeEntries, this._togglApiKey, cancellationToken
         );
 
         // 5.2 Deal with the Toggl API errors.

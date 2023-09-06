@@ -12,9 +12,11 @@ public static class EndpointsRouter
     }
 
     private static Task<IResult> OrganizeDailyTimeEntriesHandler(
-        [FromBody] RequestBody requestBody, [FromServices] OrganizeDailyTimeEntriesEndpoint endpoint
+        [FromBody] RequestBody requestBody,
+        [FromServices] OrganizeDailyTimeEntriesEndpoint endpoint,
+        CancellationToken cancellationToken
     )
     {
-        return endpoint.Handler(requestBody);
+        return endpoint.Handler(requestBody, cancellationToken);
     }
 }

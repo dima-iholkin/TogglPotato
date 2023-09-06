@@ -25,7 +25,9 @@ public class TogglApiService : ITogglApiService
         _logger = logger;
     }
 
-    public async ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(TogglApiKey togglApiKey)
+    public async ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
+        TogglApiKey togglApiKey, CancellationToken cancellationToken
+    )
     {
         // 1. Configure and send the Toggl API request.
 
@@ -35,7 +37,7 @@ public class TogglApiService : ITogglApiService
         {
             requestMessage.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
             requestMessage.Headers.AddApiKeyAuthorization(togglApiKey);
-            response = await _httpClient.SendAsync(requestMessage);
+            response = await _httpClient.SendAsync(requestMessage, cancellationToken);
         }
 
         // 2. Deal with the API error responses.
@@ -48,7 +50,9 @@ public class TogglApiService : ITogglApiService
 
         // 3. Deserialize the UserProfileResponse.
 
-        UserProfileResponse? userProfileResponse = await response.Content.ReadFromJsonAsync<UserProfileResponse>();
+        UserProfileResponse? userProfileResponse = await response.Content.ReadFromJsonAsync<UserProfileResponse>(
+            cancellationToken
+        );
 
         // TODO: Produce a proper return for deserialization error.
         if (userProfileResponse == null)
@@ -63,7 +67,7 @@ public class TogglApiService : ITogglApiService
     }
 
     public async ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
-        TimeZoneInfo timezoneInfo, DateOnly date, TogglApiKey togglApiKey
+        TimeZoneInfo timezoneInfo, DateOnly date, TogglApiKey togglApiKey, CancellationToken cancellationToken
     )
     {
         // 1. Generate the start and end times for the day.
@@ -87,7 +91,7 @@ public class TogglApiService : ITogglApiService
         {
             requestMessage.Content = new StringContent(string.Empty, Encoding.UTF8, "application/json");
             requestMessage.Headers.AddApiKeyAuthorization(togglApiKey);
-            response = await _httpClient.SendAsync(requestMessage);
+            response = await _httpClient.SendAsync(requestMessage, cancellationToken);
         }
 
         // 3. Deal with the API error responses.
@@ -100,7 +104,7 @@ public class TogglApiService : ITogglApiService
 
         // 4. Deserialize the List<TimeEntry>.
 
-        List<TimeEntry>? timeEntries = await response.Content.ReadFromJsonAsync<List<TimeEntry>>();
+        List<TimeEntry>? timeEntries = await response.Content.ReadFromJsonAsync<List<TimeEntry>>(cancellationToken);
 
         if (timeEntries == null)
         {
@@ -161,9 +165,11 @@ public class TogglApiService : ITogglApiService
     }
 
     public async Task<OneOf<List<TimeEntry>, TogglApiErrorResult>> UpdateTimeEntriesAsync(
-        List<TimeEntry> timeEntries, TogglApiKey togglApiKey
+        List<TimeEntry> timeEntries, TogglApiKey togglApiKey, CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         List<TimeEntry> responseTimeEntries = new List<TimeEntry>();
 
         foreach (TimeEntry te in timeEntries)

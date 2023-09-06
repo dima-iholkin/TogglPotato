@@ -9,9 +9,11 @@ namespace TogglPotato.WebAPI.Domain.AppService;
 public class DailyTimeEntriesOrganizer(GlobalTimeService timeService, DailyTotalTimeValidator dailyTotalTimeValidator)
 {
     public OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> SortAndModifyTimeEntries(
-        List<TimeEntry> timeEntries, TimeZoneInfo tzInfo, DateOnly date
+        List<TimeEntry> timeEntries, TimeZoneInfo tzInfo, DateOnly date, CancellationToken cancellationToken
     )
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // 1. Check the total time does not exceed a full day.
 
         bool totalTimeDoesntExceedFullDay = dailyTotalTimeValidator.CheckTotalTimeDoesntExceedFullDay(
@@ -34,6 +36,8 @@ public class DailyTimeEntriesOrganizer(GlobalTimeService timeService, DailyTotal
 
         sortedTimeEntries.ForEach(te =>
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (te.Start != currentDateUtc)
             {
                 te.Start = currentDateUtc;
