@@ -5,7 +5,6 @@ using TogglPotato.WebAPI.Domain.Validators;
 using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.Domain.AppService;
 using TogglPotato.WebAPI.Validators;
-using Asp.Versioning;
 using Asp.Versioning.Builder;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
