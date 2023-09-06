@@ -2,6 +2,8 @@ using TogglPotato.WebAPI.Helpers;
 using TogglPotato.WebAPI.Endpoints;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 using TogglPotato.WebAPI.HttpClients;
+using TogglPotato.WebAPI.Domain.Validators;
+using TogglPotato.WebAPI.Domain.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +13,8 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<TimeZoneHelper>();
+builder.Services.AddScoped<GlobalTimeService>();
+builder.Services.AddScoped<DailyTotalTimeValidator>();
 builder.Services.AddScoped<Organizer>();
 builder.Services.AddHttpClient<ITogglApiService, TogglApiService>();
 builder.Services.AddScoped<OrganizeDailyTimeEntriesEndpoint>();

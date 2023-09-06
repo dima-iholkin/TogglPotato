@@ -9,7 +9,7 @@ public interface ITogglApiService
     ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(TogglApiKey apiKey);
 
     ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
-        TimeZoneInfo timezoneInfo, DateTime date, TogglApiKey apiKey
+        TimeZoneInfo timezoneInfo, DateOnly date, TogglApiKey apiKey
     );
 
     Task<OneOf<List<TimeEntry>, TogglApiErrorResult>> UpdateTimeEntriesAsync(

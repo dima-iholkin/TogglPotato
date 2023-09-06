@@ -1,4 +1,4 @@
-namespace TogglPotato.WebAPI.ValidationErrors;
+namespace TogglPotato.WebAPI.Domain.Validators.Errors;
 
 public class DailyTotalTimeExceedsFullDayValidationError
 {

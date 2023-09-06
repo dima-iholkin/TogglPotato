@@ -1,20 +1,19 @@
 using OneOf;
-using TogglPotato.WebAPI.Helpers;
+using TogglPotato.WebAPI.Domain.Validators;
+using TogglPotato.WebAPI.Domain.Validators.Errors;
 using TogglPotato.WebAPI.Models;
-using TogglPotato.WebAPI.ValidationErrors;
-using TogglPotato.WebAPI.Validators;
 
 namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
-public class Organizer(ILogger<Organizer> logger)
+public class Organizer(DailyTotalTimeValidator dailyTotalTimeValidator)
 {
     public OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> SortAndPrepareTimeEntries(
-        List<TimeEntry> timeEntries, TimeZoneInfo timezoneInfo, DateTime date
+        List<TimeEntry> timeEntries, TimeZoneInfo timezoneInfo, DateOnly date
     )
     {
         // 1. Check the total time does not exceed a full day.
 
-        bool totalTimeDoesntExceedFullDay = TotalTimeValidator.CheckTotalTimeDoesntExceedFullDay(timeEntries, logger);
+        bool totalTimeDoesntExceedFullDay = dailyTotalTimeValidator.CheckTotalTimeDoesntExceedFullDay(timeEntries);
 
         if (totalTimeDoesntExceedFullDay == false)
         {
@@ -28,11 +27,13 @@ public class Organizer(ILogger<Organizer> logger)
         // 3. Modify the Time Entries before an upload.
 
         TimeSpan dailyTimeCount = new TimeSpan();
-        TimeSpan utcOffset = timezoneInfo.GetTimeZoneOffset(date);
+
+        DateTime dateTime = new DateTime(date, TimeOnly.MinValue);
+        TimeSpan utcOffset = timezoneInfo.GetUtcOffset(dateTime);
 
         sortedTimeEntries.ForEach(te =>
         {
-            DateTime newStartTime = date.Add(dailyTimeCount).Subtract(utcOffset);
+            DateTime newStartTime = dateTime.Add(dailyTimeCount).Subtract(utcOffset);
 
             if (te.Start != newStartTime)
             {

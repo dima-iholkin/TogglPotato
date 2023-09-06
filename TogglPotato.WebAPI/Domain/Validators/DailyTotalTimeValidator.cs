@@ -1,10 +1,10 @@
-using TogglPotato.WebAPI.Models;
+﻿using TogglPotato.WebAPI.Models;
 
-namespace TogglPotato.WebAPI.Validators;
+namespace TogglPotato.WebAPI.Domain.Validators;
 
-public static class TotalTimeValidator
+public class DailyTotalTimeValidator(ILogger<DailyTotalTimeValidator> logger)
 {
-    public static bool CheckTotalTimeDoesntExceedFullDay(List<TimeEntry> timeEntries, ILogger logger)
+    public bool CheckTotalTimeDoesntExceedFullDay(List<TimeEntry> timeEntries)
     {
         // 1. Count the total time.
 
