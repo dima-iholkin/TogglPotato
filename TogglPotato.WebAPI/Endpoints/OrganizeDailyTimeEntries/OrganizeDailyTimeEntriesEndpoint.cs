@@ -1,4 +1,5 @@
 using OneOf;
+using TogglPotato.WebAPI.Domain.AppService;
 using TogglPotato.WebAPI.Domain.Validators.Errors;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries.Models;
 using TogglPotato.WebAPI.HttpClients;
@@ -10,7 +11,7 @@ using TogglPotato.WebAPI.Validators;
 
 namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
-public class OrganizeDailyTimeEntriesEndpoint(Organizer organizer, ITogglApiService togglHttpService)
+public class OrganizeDailyTimeEntriesEndpoint(DailyTimeEntriesOrganizer organizer, ITogglApiService togglHttpService)
 {
     private TogglApiKey? _togglApiKey;
     private DateOnly _date;
@@ -101,7 +102,7 @@ public class OrganizeDailyTimeEntriesEndpoint(Organizer organizer, ITogglApiServ
         // 4.1 Sort and prepare the time entries to modify at Toggl.
 
         OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> sortAndPrepareResult =
-            organizer.SortAndPrepareTimeEntries(originalTimeEntries, timezoneInfo, this._date);
+            organizer.SortAndModifyTimeEntries(originalTimeEntries, timezoneInfo, this._date);
 
         // 4.2 Handle the potential errors.
 

@@ -1,10 +1,11 @@
-﻿using TogglPotato.WebAPI.Models;
+﻿using TogglPotato.WebAPI.Domain.Services;
+using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.Domain.Validators;
 
-public class DailyTotalTimeValidator(ILogger<DailyTotalTimeValidator> logger)
+public class DailyTotalTimeValidator(GlobalTimeService timeService, ILogger<DailyTotalTimeValidator> logger)
 {
-    public bool CheckTotalTimeDoesntExceedFullDay(List<TimeEntry> timeEntries)
+    public bool CheckTotalTimeDoesntExceedFullDay(List<TimeEntry> timeEntries, TimeZoneInfo tzInfo, DateOnly date)
     {
         // 1. Count the total time.
 
@@ -16,8 +17,8 @@ public class DailyTotalTimeValidator(ILogger<DailyTotalTimeValidator> logger)
 
         // 2. Log the total time.
 
-        string timespanString = string.Format("{0}h{1}m{2}s",
-            totalTime.Days * 24 + totalTime.Hours,
+        string timespanString = string.Format("{0} hours {1} minutes {2} seconds",
+            Math.Floor(totalTime.TotalHours),
             totalTime.Minutes,
             totalTime.Seconds
         );
@@ -25,7 +26,7 @@ public class DailyTotalTimeValidator(ILogger<DailyTotalTimeValidator> logger)
 
         // 3. Return the boolean result.
 
-        if (totalTime.TotalHours > 24)
+        if (totalTime > timeService.GetDailyTimeSpan(tzInfo, date))
         {
             return false;
         }

@@ -1,19 +1,22 @@
 using OneOf;
+using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.Domain.Validators;
 using TogglPotato.WebAPI.Domain.Validators.Errors;
 using TogglPotato.WebAPI.Models;
 
-namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
+namespace TogglPotato.WebAPI.Domain.AppService;
 
-public class Organizer(DailyTotalTimeValidator dailyTotalTimeValidator)
+public class DailyTimeEntriesOrganizer(GlobalTimeService timeService, DailyTotalTimeValidator dailyTotalTimeValidator)
 {
-    public OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> SortAndPrepareTimeEntries(
-        List<TimeEntry> timeEntries, TimeZoneInfo timezoneInfo, DateOnly date
+    public OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> SortAndModifyTimeEntries(
+        List<TimeEntry> timeEntries, TimeZoneInfo tzInfo, DateOnly date
     )
     {
         // 1. Check the total time does not exceed a full day.
 
-        bool totalTimeDoesntExceedFullDay = dailyTotalTimeValidator.CheckTotalTimeDoesntExceedFullDay(timeEntries);
+        bool totalTimeDoesntExceedFullDay = dailyTotalTimeValidator.CheckTotalTimeDoesntExceedFullDay(
+            timeEntries, tzInfo, date
+        );
 
         if (totalTimeDoesntExceedFullDay == false)
         {
@@ -26,14 +29,13 @@ public class Organizer(DailyTotalTimeValidator dailyTotalTimeValidator)
 
         // 3. Modify the Time Entries before an upload.
 
-        TimeSpan dailyTimeCount = new TimeSpan();
+        (DateTime startDateUtc, _) = timeService.GenerateUtcTimeRangeForDailyTimeEntries(tzInfo, date);
 
-        DateTime dateTime = new DateTime(date, TimeOnly.MinValue);
-        TimeSpan utcOffset = timezoneInfo.GetUtcOffset(dateTime);
+        TimeSpan dailyTimeCount = new TimeSpan();
 
         sortedTimeEntries.ForEach(te =>
         {
-            DateTime newStartTime = dateTime.Add(dailyTimeCount).Subtract(utcOffset);
+            DateTime newStartTime = startDateUtc.Add(dailyTimeCount);
 
             if (te.Start != newStartTime)
             {
@@ -43,7 +45,7 @@ public class Organizer(DailyTotalTimeValidator dailyTotalTimeValidator)
                 te.Modified = true;
             }
 
-            dailyTimeCount = dailyTimeCount.Add(new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration));
+            dailyTimeCount += new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration);
         });
 
         // 4. Return the modified Time Entries.

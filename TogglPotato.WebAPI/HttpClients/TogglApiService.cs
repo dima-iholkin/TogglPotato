@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using OneOf;
 using TogglPotato.WebAPI.Domain.Services;
-using TogglPotato.WebAPI.Helpers;
+using TogglPotato.WebAPI.HttpClients.Helpers;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
 using TogglPotato.WebAPI.HttpClients.Models;
@@ -78,8 +78,8 @@ public class TogglApiService : ITogglApiService
 
         Dictionary<string, string?> queryString = new Dictionary<string, string?>()
         {
-            { "start_date", _timeService.ToTogglApiString(startTime) },
-            { "end_date", _timeService.ToTogglApiString(endTime) }
+            { "start_date", startTime.ToTogglApiString() },
+            { "end_date", endTime.ToTogglApiString() }
         };
 
         string uri = QueryHelpers.AddQueryString("/api/v9/me/time_entries", queryString);

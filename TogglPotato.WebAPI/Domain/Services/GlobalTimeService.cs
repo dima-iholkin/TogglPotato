@@ -63,9 +63,4 @@ public class GlobalTimeService(ILogger<GlobalTimeService> logger)
 
         return (_startDateUtc, _endDateUtc);
     }
-
-    public string ToTogglApiString(DateTime dateTime)
-    {
-        return dateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.ff'Z'");
-    }
 }
