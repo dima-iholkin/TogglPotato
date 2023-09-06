@@ -1,12 +1,12 @@
 using Asp.Versioning.Builder;
+using TogglPotato.WebAPI.Domain.AppService;
+using TogglPotato.WebAPI.Domain.Services;
+using TogglPotato.WebAPI.Domain.Validators;
 using TogglPotato.WebAPI.Endpoints;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 using TogglPotato.WebAPI.HttpClients;
-using TogglPotato.WebAPI.Domain.Validators;
-using TogglPotato.WebAPI.Domain.Services;
-using TogglPotato.WebAPI.Domain.AppService;
-using TogglPotato.WebAPI.Validators;
 using TogglPotato.WebAPI.HttpClients.Retries;
+using TogglPotato.WebAPI.Validators;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
