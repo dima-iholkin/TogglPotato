@@ -30,22 +30,19 @@ public class DailyTimeEntriesOrganizer(GlobalTimeService timeService, DailyTotal
         // 3. Modify the Time Entries before an upload.
 
         (DateTime startDateUtc, _) = timeService.GenerateUtcTimeRangeForDailyTimeEntries(tzInfo, date);
-
-        TimeSpan dailyTimeCount = new TimeSpan();
+        DateTime currentDateUtc = startDateUtc;
 
         sortedTimeEntries.ForEach(te =>
         {
-            DateTime newStartTime = startDateUtc.Add(dailyTimeCount);
-
-            if (te.Start != newStartTime)
+            if (te.Start != currentDateUtc)
             {
-                te.Start = newStartTime;
-                te.Stop = newStartTime.AddSeconds(te.Duration);
+                te.Start = currentDateUtc;
+                te.Stop = currentDateUtc.AddSeconds(te.Duration);
 
                 te.Modified = true;
             }
 
-            dailyTimeCount += new TimeSpan(hours: 0, minutes: 0, seconds: te.Duration);
+            currentDateUtc = te.Stop;
         });
 
         // 4. Return the modified Time Entries.
