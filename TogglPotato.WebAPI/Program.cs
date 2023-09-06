@@ -5,6 +5,8 @@ using TogglPotato.WebAPI.Domain.Validators;
 using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.Domain.AppService;
 using TogglPotato.WebAPI.Validators;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,10 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add API Versioning:
+builder.Services.AddApiVersioning();
+
+// Add custom services:
 builder.Services.AddScoped<StartDateValidator>();
 builder.Services.AddScoped<GlobalTimeService>();
 builder.Services.AddScoped<DailyTotalTimeValidator>();
@@ -23,6 +29,10 @@ builder.Services.AddScoped<OrganizeDailyTimeEntriesEndpoint>();
 
 var app = builder.Build();
 
+// Configure the API Versioning:
+IVersionedEndpointRouteBuilder versionedApi = app.NewVersionedApi();
+RouteGroupBuilder apiV1 = versionedApi.MapGroup("/api/v{version:apiVersion}").HasApiVersion(1.0);
+
 // Configure the HTTP request pipeline:
 
 if (app.Environment.IsDevelopment())
@@ -31,7 +41,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-EndpointsRouter.Map(app);
+EndpointsRouter.Map(apiV1);
 
 app.UseHttpsRedirection();
 

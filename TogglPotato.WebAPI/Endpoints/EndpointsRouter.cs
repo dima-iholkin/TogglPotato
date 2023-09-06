@@ -6,9 +6,9 @@ namespace TogglPotato.WebAPI.Endpoints;
 
 public static class EndpointsRouter
 {
-    public static void Map(WebApplication app)
+    public static void Map(RouteGroupBuilder apiVersion)
     {
-        app.MapPost("/api/organize_daily_time_entries", OrganizeDailyTimeEntriesHandler);
+        apiVersion.MapPost("/organize_daily_time_entries", OrganizeDailyTimeEntriesHandler);
     }
 
     private static Task<IResult> OrganizeDailyTimeEntriesHandler(
