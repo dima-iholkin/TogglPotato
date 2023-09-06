@@ -1,4 +1,4 @@
-namespace TogglPotato.WebAPI.Helpers;
+namespace TogglPotato.WebAPI.HttpClients.Helpers;
 
 public static class DateTimeExtensions
 {

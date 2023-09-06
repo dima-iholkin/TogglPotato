@@ -2,7 +2,8 @@ using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using OneOf;
-using TogglPotato.WebAPI.Helpers;
+using TogglPotato.WebAPI.Domain.Services;
+using TogglPotato.WebAPI.HttpClients.Helpers;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
 using TogglPotato.WebAPI.HttpClients.Models;
@@ -13,14 +14,14 @@ namespace TogglPotato.WebAPI.HttpClients;
 public class TogglApiService : ITogglApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly TimeZoneHelper _tzHelper;
+    private readonly GlobalTimeService _timeService;
     private readonly ILogger<TogglApiService> _logger;
 
-    public TogglApiService(HttpClient httpClient, TimeZoneHelper tzHelper, ILogger<TogglApiService> logger)
+    public TogglApiService(HttpClient httpClient, GlobalTimeService timeService, ILogger<TogglApiService> logger)
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri("https://api.track.toggl.com");
-        _tzHelper = tzHelper;
+        _timeService = timeService;
         _logger = logger;
     }
 
@@ -57,17 +58,17 @@ public class TogglApiService : ITogglApiService
 
         // 4. Return the UserProfile on success.
 
-        UserProfile userProfile = userProfileResponse.ConvertToUserProfile(_tzHelper);
+        UserProfile userProfile = userProfileResponse.ConvertToUserProfile(_timeService);
         return userProfile;
     }
 
     public async ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
-        TimeZoneInfo timezoneInfo, DateTime date, TogglApiKey togglApiKey
+        TimeZoneInfo timezoneInfo, DateOnly date, TogglApiKey togglApiKey
     )
     {
         // 1. Generate the start and end times for the day.
 
-        (DateTime startTime, DateTime endTime) = DateTimeHelper.GenerateUtcTimeRangeForDailyTimeEntries(
+        (DateTime startTime, DateTime endTime) = _timeService.GenerateUtcTimeRangeForDailyTimeEntries(
             timezoneInfo, date
         );
 

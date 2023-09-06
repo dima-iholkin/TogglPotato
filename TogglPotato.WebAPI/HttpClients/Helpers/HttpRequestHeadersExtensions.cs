@@ -2,7 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using TogglPotato.WebAPI.Models;
 
-namespace TogglPotato.WebAPI.Helpers;
+namespace TogglPotato.WebAPI.HttpClients.Helpers;
 
 public static class HttpRequestHeadersExtensions
 {

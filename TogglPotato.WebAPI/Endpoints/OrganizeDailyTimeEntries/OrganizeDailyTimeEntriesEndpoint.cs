@@ -1,4 +1,6 @@
 using OneOf;
+using TogglPotato.WebAPI.Domain.AppService;
+using TogglPotato.WebAPI.Domain.Validators.Errors;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries.Models;
 using TogglPotato.WebAPI.HttpClients;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling;
@@ -9,10 +11,10 @@ using TogglPotato.WebAPI.Validators;
 
 namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
-public class OrganizeDailyTimeEntriesEndpoint(Organizer organizer, ITogglApiService togglHttpService)
+public class OrganizeDailyTimeEntriesEndpoint(DailyTimeEntriesOrganizer organizer, ITogglApiService togglHttpService)
 {
     private TogglApiKey? _togglApiKey;
-    private DateTime _date;
+    private DateOnly _date;
 
     /// <summary>
     /// Handles the HTTP request, organizes the time entries in Toggl and returns the daily records in final order
@@ -47,7 +49,7 @@ public class OrganizeDailyTimeEntriesEndpoint(Organizer organizer, ITogglApiServ
             return TypedResults.BadRequest(new { Message = "Please provide date without a time." });
         }
 
-        this._date = requestBody.Date;
+        this._date = DateOnly.FromDateTime(requestBody.Date);
 
         // 2. Get the TimeZoneInfo.
 
@@ -100,7 +102,7 @@ public class OrganizeDailyTimeEntriesEndpoint(Organizer organizer, ITogglApiServ
         // 4.1 Sort and prepare the time entries to modify at Toggl.
 
         OneOf<List<TimeEntry>, DailyTotalTimeExceedsFullDayValidationError> sortAndPrepareResult =
-            organizer.SortAndPrepareTimeEntries(originalTimeEntries, timezoneInfo, this._date);
+            organizer.SortAndModifyTimeEntries(originalTimeEntries, timezoneInfo, this._date);
 
         // 4.2 Handle the potential errors.
 

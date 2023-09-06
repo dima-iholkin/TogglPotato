@@ -1,11 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 using TimeZoneConverter;
 
-namespace TogglPotato.WebAPI.Helpers;
+namespace TogglPotato.WebAPI.Domain.Services;
 
-public class TimeZoneHelper(ILogger<TimeZoneHelper> logger)
+public class GlobalTimeService(ILogger<GlobalTimeService> logger)
 {
-    public TimeZoneInfo FindTimeZoneFromToggl(string tzString)
+    public TimeZoneInfo FindTimeZoneFromTogglString(string tzString)
     {
         if (String.IsNullOrEmpty(tzString))
         {
@@ -39,5 +39,28 @@ public class TimeZoneHelper(ILogger<TimeZoneHelper> logger)
 
             throw;
         }
+    }
+
+    public TimeSpan GetDailyTimeSpan(TimeZoneInfo tzInfo, DateOnly date)
+    {
+        (DateTime startDateUtc, DateTime endDateUtc) = this.GenerateUtcTimeRangeForDailyTimeEntries(tzInfo, date);
+
+        TimeSpan dailyTimeSpan = endDateUtc.AddTicks(1) - startDateUtc;
+        return dailyTimeSpan;
+    }
+
+    public (DateTime startDateUtc, DateTime endDateUtc) GenerateUtcTimeRangeForDailyTimeEntries(
+        TimeZoneInfo tzInfo, DateOnly date
+    )
+    {
+        TimeOnly zeroTime = TimeOnly.MinValue;
+
+        DateTime startDate = new DateTime(date, zeroTime, DateTimeKind.Unspecified);
+        DateTime _startDateUtc = TimeZoneInfo.ConvertTimeToUtc(startDate, tzInfo);
+
+        DateTime endDate = new DateTime(date.AddDays(1), zeroTime, DateTimeKind.Unspecified);
+        DateTime _endDateUtc = TimeZoneInfo.ConvertTimeToUtc(endDate, tzInfo).AddTicks(-1);
+
+        return (_startDateUtc, _endDateUtc);
     }
 }
