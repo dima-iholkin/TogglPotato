@@ -4,6 +4,7 @@ using TogglPotato.WebAPI.HttpClients;
 using TogglPotato.WebAPI.Domain.Validators;
 using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.Domain.AppService;
+using TogglPotato.WebAPI.Validators;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<StartDateValidator>();
 builder.Services.AddScoped<GlobalTimeService>();
 builder.Services.AddScoped<DailyTotalTimeValidator>();
 builder.Services.AddScoped<DailyTimeEntriesOrganizer>();

@@ -11,7 +11,9 @@ using TogglPotato.WebAPI.Validators;
 
 namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
-public class OrganizeDailyTimeEntriesEndpoint(DailyTimeEntriesOrganizer organizer, ITogglApiService togglHttpService)
+public class OrganizeDailyTimeEntriesEndpoint(
+    DailyTimeEntriesOrganizer organizer, ITogglApiService togglHttpService, StartDateValidator startDateValidator
+)
 {
     private TogglApiKey? _togglApiKey;
     private DateOnly _date;
@@ -39,17 +41,19 @@ public class OrganizeDailyTimeEntriesEndpoint(DailyTimeEntriesOrganizer organize
 
         // 1.2 Validate the date.
 
-        if (requestBody.Date == default(DateTime))
+        if (requestBody.Date == default(DateOnly))
         {
             return TypedResults.BadRequest(new { Message = "Please provide a date." });
         }
 
-        if (InputDateValidator.Validate(requestBody.Date) == false)
+        if (InputDateValidator.ValidateInputDateIsWithinLast3Months(requestBody.Date) == false)
         {
-            return TypedResults.BadRequest(new { Message = "Please provide date without a time." });
+            string message =
+                "Please provide a date within last 3 months. This is a requirement of the Toggl API used by this app.";
+            return TypedResults.BadRequest(new { Message = message });
         }
 
-        this._date = DateOnly.FromDateTime(requestBody.Date);
+        this._date = requestBody.Date;
 
         // 2. Get the TimeZoneInfo.
 
@@ -71,6 +75,15 @@ public class OrganizeDailyTimeEntriesEndpoint(DailyTimeEntriesOrganizer organize
         // 2.3 Get the correct TimeZoneInfo.
 
         TimeZoneInfo timezoneInfo = userProfileResult.AsT0.TimeZoneInfo;
+
+        // 2.4 Validate the start_time will be within the last 3 month.
+
+        if (startDateValidator.ValidateStartDateIsWithinLast3Months(this._date, timezoneInfo) == false)
+        {
+            string message =
+                "Please provide a date within last 3 months. This is a requirement of the Toggl API used by this app.";
+            return TypedResults.BadRequest(new { Message = message });
+        }
 
         // 3.1 Get the daily time entries.
 
