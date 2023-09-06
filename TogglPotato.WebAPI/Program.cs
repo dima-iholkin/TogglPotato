@@ -1,3 +1,4 @@
+using Asp.Versioning.Builder;
 using TogglPotato.WebAPI.Endpoints;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 using TogglPotato.WebAPI.HttpClients;
@@ -5,7 +6,7 @@ using TogglPotato.WebAPI.Domain.Validators;
 using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.Domain.AppService;
 using TogglPotato.WebAPI.Validators;
-using Asp.Versioning.Builder;
+using TogglPotato.WebAPI.HttpClients.Retries;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +24,8 @@ builder.Services.AddScoped<StartDateValidator>();
 builder.Services.AddScoped<GlobalTimeService>();
 builder.Services.AddScoped<DailyTotalTimeValidator>();
 builder.Services.AddScoped<DailyTimeEntriesOrganizer>();
-builder.Services.AddHttpClient<ITogglApiService, TogglApiService>();
+builder.Services.AddHttpClient<ITogglApiService, TogglApiService>()
+    .AddPolicyHandler(DefaultRetryPolicy.GetRetryPolicy());
 builder.Services.AddScoped<OrganizeDailyTimeEntriesEndpoint>();
 
 var app = builder.Build();
