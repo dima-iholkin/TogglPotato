@@ -16,10 +16,10 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add API Versioning:
+// Add the API Versioning:
 builder.Services.AddApiVersioning();
 
-// Add custom services:
+// Add our custom services:
 builder.Services.AddScoped<StartDateValidator>();
 builder.Services.AddScoped<GlobalTimeService>();
 builder.Services.AddScoped<DailyTotalTimeValidator>();
