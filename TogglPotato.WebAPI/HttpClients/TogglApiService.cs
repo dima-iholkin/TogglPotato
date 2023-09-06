@@ -130,11 +130,12 @@ public class TogglApiService : ITogglApiService
         string uri = $"/api/v9/workspaces/{timeEntry.WorkspaceId}/time_entries/{timeEntry.Id}";
         using (HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Put, uri))
         {
-            // 1.1 Format the sent TimeEntry.
+            // 1.1 Format the TimeEntry to be sent.
             TimeEntry newTimeEntry = (TimeEntry)timeEntry.Clone();
             newTimeEntry.Id = default(long);
             newTimeEntry.Start = new DateTime(timeEntry.Start.Ticks, DateTimeKind.Utc);
             newTimeEntry.Stop = new DateTime(timeEntry.Stop.Ticks, DateTimeKind.Utc);
+            newTimeEntry.CreatedWith = "TogglPotato";
 
             // 1.2 Configure the request.
             requestMessage.Content = JsonContent.Create<TimeEntry>(newTimeEntry);
