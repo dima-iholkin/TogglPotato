@@ -2,7 +2,7 @@
 
 This is a small utility to organize your Toggl daily time entries over the daily 24 hour period.
 
-<img src="/docs/assets/before_and_after.png" width="600" title="before and after using TogglPotato utility" />
+<img src="/docs/assets/before_and_after.png" width="300" title="before and after using TogglPotato utility" />
 
 * It supports Daylight saving time (DST), so it should work correctly even when the calendar day is not straight 24 hours.
 
