@@ -25,7 +25,7 @@ public class TogglApiService : ITogglApiService
         _logger = logger;
     }
 
-    public async ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
+    public async Task<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
         TogglApiKey togglApiKey, CancellationToken cancellationToken
     )
     {
@@ -66,7 +66,7 @@ public class TogglApiService : ITogglApiService
         return userProfile;
     }
 
-    public async ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
+    public async Task<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
         TimeZoneInfo timezoneInfo, DateOnly date, TogglApiKey togglApiKey, CancellationToken cancellationToken
     )
     {
@@ -119,7 +119,7 @@ public class TogglApiService : ITogglApiService
         return timeEntries;
     }
 
-    private async ValueTask<OneOf<TimeEntry, TogglApiErrorResult>> UpdateTimeEntryAsync(
+    private async Task<OneOf<TimeEntry, TogglApiErrorResult>> UpdateTimeEntryAsync(
         TimeEntry timeEntry, TogglApiKey togglApiKey
     )
     {
