@@ -6,6 +6,7 @@ using TogglPotato.WebAPI.Endpoints;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 using TogglPotato.WebAPI.HttpClients;
 using TogglPotato.WebAPI.HttpClients.Retries;
+using TogglPotato.WebAPI.StartupTests;
 using TogglPotato.WebAPI.Validators;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,9 @@ builder.Services.AddHttpClient<ITogglApiService, TogglApiService>()
 builder.Services.AddScoped<OrganizeDailyTimeEntriesEndpoint>();
 
 WebApplication app = builder.Build();
+
+// Run the startup tests:
+StartupTester.RunTests(app);
 
 // Configure the API Versioning:
 IVersionedEndpointRouteBuilder versionedApi = app.NewVersionedApi();
