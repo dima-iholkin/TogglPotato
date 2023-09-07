@@ -1,6 +1,6 @@
 using OneOf;
+using TogglPotato.WebAPI.Domain.Models;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
-using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.HttpClients;
 

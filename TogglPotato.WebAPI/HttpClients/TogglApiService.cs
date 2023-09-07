@@ -1,13 +1,13 @@
-using System.Net;
-using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using OneOf;
+using System.Net;
+using System.Text;
+using TogglPotato.WebAPI.Domain.Models;
 using TogglPotato.WebAPI.Domain.Services;
-using TogglPotato.WebAPI.HttpClients.Helpers;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
+using TogglPotato.WebAPI.HttpClients.Helpers;
 using TogglPotato.WebAPI.HttpClients.Models;
-using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.HttpClients;
 
