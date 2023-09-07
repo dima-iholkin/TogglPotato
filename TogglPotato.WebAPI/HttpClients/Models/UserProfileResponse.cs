@@ -1,5 +1,5 @@
 using TogglPotato.WebAPI.Domain.Services;
-using TogglPotato.WebAPI.Models;
+using TogglPotato.WebAPI.Domain.Models;
 
 namespace TogglPotato.WebAPI.HttpClients.Models;
 
