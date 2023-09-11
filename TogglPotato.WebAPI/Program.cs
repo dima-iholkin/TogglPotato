@@ -1,4 +1,8 @@
 using Asp.Versioning.Builder;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using TogglPotato.WebAPI.Domain.AppService;
 using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.Domain.Validators;
@@ -9,18 +13,42 @@ using TogglPotato.WebAPI.HttpClients.Retries;
 using TogglPotato.WebAPI.StartupTests;
 using TogglPotato.WebAPI.Validators;
 
+// Define some important constants and the activity source.
+// These can come from a config file, constants file, etc.
+string serviceName = "TogglPotato.WebAPI";
+string serviceVersion = "1.0.0";
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container:
 
-// Add Swagger/OpenAPI:
+// Add OpenTelemetry.
+builder.Services.AddOpenTelemetry()
+    .WithTracing(builder =>
+    {
+        builder.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddConsoleExporter()
+            .AddSource(serviceName)
+            .ConfigureResource(resource =>
+                resource.AddService(serviceName: serviceName, serviceVersion: serviceVersion)
+            );
+    })
+    .WithMetrics(builder =>
+    {
+        builder.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddConsoleExporter();
+    });
+
+// Add Swagger/OpenAPI.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add the API Versioning:
+// Add the API Versioning.
 builder.Services.AddApiVersioning();
 
-// Add our custom services:
+// Add our custom services.
 builder.Services.AddScoped<StartDateValidator>();
 builder.Services.AddScoped<GlobalTimeService>();
 builder.Services.AddScoped<DailyTotalTimeValidator>();
