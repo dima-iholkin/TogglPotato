@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.WebUtilities;
 using OneOf;
 using System.Net;
-using System.Text;
 using TogglPotato.WebAPI.Domain.Models;
 using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling;

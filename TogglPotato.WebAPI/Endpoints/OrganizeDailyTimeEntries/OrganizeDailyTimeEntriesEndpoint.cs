@@ -1,14 +1,14 @@
 using OneOf;
+using System.Diagnostics;
 using TogglPotato.WebAPI.Domain.AppService;
+using TogglPotato.WebAPI.Domain.Models;
 using TogglPotato.WebAPI.Domain.Validators.Errors;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries.Models;
 using TogglPotato.WebAPI.HttpClients;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
-using TogglPotato.WebAPI.Domain.Models;
 using TogglPotato.WebAPI.ValidationErrors;
 using TogglPotato.WebAPI.Validators;
-using System.Diagnostics;
 
 namespace TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 
