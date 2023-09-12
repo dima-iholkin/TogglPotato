@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace TogglPotato.WebAPI.Models;
+namespace TogglPotato.WebAPI.Domain.Models;
 
 public class TimeEntry : ICloneable
 {

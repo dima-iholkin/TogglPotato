@@ -1,16 +1,16 @@
 using OneOf;
+using TogglPotato.WebAPI.Domain.Models;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
-using TogglPotato.WebAPI.Models;
 
 namespace TogglPotato.WebAPI.HttpClients;
 
 public interface ITogglApiService
 {
-    ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
+    Task<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
         TogglApiKey togglApiKey, CancellationToken cancellationToken
     );
 
-    ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
+    Task<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
         TimeZoneInfo tzInfo, DateOnly date, TogglApiKey apiKey, CancellationToken cancellationToken
     );
 

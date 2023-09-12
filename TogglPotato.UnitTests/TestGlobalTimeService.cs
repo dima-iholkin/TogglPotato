@@ -4,7 +4,7 @@ using TogglPotato.WebAPI.Domain.Services;
 
 namespace TogglPotato.UnitTests;
 
-public class GlobalTimeServiceTests()
+public class TestGlobalTimeService()
 {
     [Theory]
     [InlineData(2023, 3, 26, 23)]
@@ -24,5 +24,17 @@ public class GlobalTimeServiceTests()
 
         TimeSpan expectedTimeSpan = new TimeSpan(expectedHours, minutes: 0, seconds: 0);
         Assert.Equal(expectedTimeSpan, dailyTimeSpan);
+    }
+
+    [Theory]
+    [InlineData("Europe/Kyiv")]
+    public void FindTimeZoneFromTogglString_HappyPathShouldWork(string tzString)
+    {
+        var loggerMock = Mock.Of<ILogger<GlobalTimeService>>();
+        GlobalTimeService timeService = new GlobalTimeService(loggerMock);
+
+        TimeZoneInfo tzInfo = timeService.FindTimeZoneFromTogglString(tzString);
+
+        Assert.NotNull(tzInfo);
     }
 }

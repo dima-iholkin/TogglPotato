@@ -1,6 +1,5 @@
 using System.Net.Http.Headers;
-using System.Text;
-using TogglPotato.WebAPI.Models;
+using TogglPotato.WebAPI.Domain.Models;
 
 namespace TogglPotato.WebAPI.HttpClients.Helpers;
 

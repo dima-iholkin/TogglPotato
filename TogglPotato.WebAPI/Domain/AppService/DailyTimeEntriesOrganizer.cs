@@ -2,7 +2,7 @@ using OneOf;
 using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.Domain.Validators;
 using TogglPotato.WebAPI.Domain.Validators.Errors;
-using TogglPotato.WebAPI.Models;
+using TogglPotato.WebAPI.Domain.Models;
 
 namespace TogglPotato.WebAPI.Domain.AppService;
 

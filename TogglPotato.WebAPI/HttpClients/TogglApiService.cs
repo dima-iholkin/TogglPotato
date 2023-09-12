@@ -1,31 +1,36 @@
-using System.Net;
-using System.Text;
 using Microsoft.AspNetCore.WebUtilities;
 using OneOf;
+using System.Net;
+using TogglPotato.WebAPI.Domain.Models;
 using TogglPotato.WebAPI.Domain.Services;
-using TogglPotato.WebAPI.HttpClients.Helpers;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
+using TogglPotato.WebAPI.HttpClients.Helpers;
 using TogglPotato.WebAPI.HttpClients.Models;
-using TogglPotato.WebAPI.Models;
+using TogglPotato.WebAPI.Observability;
 
 namespace TogglPotato.WebAPI.HttpClients;
 
 public class TogglApiService : ITogglApiService
 {
-    private readonly HttpClient _httpClient;
-    private readonly GlobalTimeService _timeService;
-    private readonly ILogger<TogglApiService> _logger;
-
-    public TogglApiService(HttpClient httpClient, GlobalTimeService timeService, ILogger<TogglApiService> logger)
+    public TogglApiService(
+        HttpClient httpClient, GlobalTimeService timeService, ILogger<TogglApiService> logger, Metrics metrics
+    )
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri("https://api.track.toggl.com");
+
         _timeService = timeService;
         _logger = logger;
+        _metrics = metrics;
     }
 
-    public async ValueTask<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
+    private readonly HttpClient _httpClient;
+    private readonly GlobalTimeService _timeService;
+    private readonly ILogger<TogglApiService> _logger;
+    private readonly Metrics _metrics;
+
+    public async Task<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
         TogglApiKey togglApiKey, CancellationToken cancellationToken
     )
     {
@@ -66,7 +71,7 @@ public class TogglApiService : ITogglApiService
         return userProfile;
     }
 
-    public async ValueTask<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
+    public async Task<OneOf<List<TimeEntry>, TogglApiErrorResult>> GetDailyTimeEntriesAsync(
         TimeZoneInfo timezoneInfo, DateOnly date, TogglApiKey togglApiKey, CancellationToken cancellationToken
     )
     {
@@ -119,7 +124,7 @@ public class TogglApiService : ITogglApiService
         return timeEntries;
     }
 
-    private async ValueTask<OneOf<TimeEntry, TogglApiErrorResult>> UpdateTimeEntryAsync(
+    private async Task<OneOf<TimeEntry, TogglApiErrorResult>> UpdateTimeEntryAsync(
         TimeEntry timeEntry, TogglApiKey togglApiKey
     )
     {
@@ -177,6 +182,8 @@ public class TogglApiService : ITogglApiService
         {
             if (te.Modified == true)
             {
+                _metrics.timeEntriesModified.Add(1);
+
                 OneOf<TimeEntry, TogglApiErrorResult> updateResult = await this.UpdateTimeEntryAsync(te, togglApiKey);
 
                 if (updateResult.IsT1)
@@ -188,6 +195,8 @@ public class TogglApiService : ITogglApiService
             }
             else
             {
+                _metrics.timeEntriesNotModified.Add(1);
+
                 responseTimeEntries.Add(te);
             }
         }

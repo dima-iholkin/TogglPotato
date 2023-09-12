@@ -1,4 +1,4 @@
-namespace TogglPotato.WebAPI.Models;
+namespace TogglPotato.WebAPI.Domain.Models;
 
 public class UserProfile
 {
