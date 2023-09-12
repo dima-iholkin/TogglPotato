@@ -1,5 +1,4 @@
 using Asp.Versioning.Builder;
-using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -24,15 +23,13 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add OpenTelemetry.
 builder.Services.AddOpenTelemetry()
+    .ConfigureResource(builder => builder.AddService(serviceName: serviceName, serviceVersion: serviceVersion))
     .WithTracing(builder =>
     {
         builder.AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddConsoleExporter()
-            .AddSource(serviceName)
-            .ConfigureResource(resource =>
-                resource.AddService(serviceName: serviceName, serviceVersion: serviceVersion)
-            );
+            .AddSource(serviceName);
     })
     .WithMetrics(builder =>
     {
