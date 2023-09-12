@@ -82,3 +82,6 @@ EndpointsRouter.Map(apiV1);
 app.UseHttpsRedirection();
 
 app.Run();
+
+// Make the integration tests work.
+public partial class Program { }
