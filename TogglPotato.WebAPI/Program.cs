@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using Asp.Versioning.Builder;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -9,19 +11,22 @@ using TogglPotato.WebAPI.Endpoints;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 using TogglPotato.WebAPI.HttpClients;
 using TogglPotato.WebAPI.HttpClients.Retries;
+using TogglPotato.WebAPI.Observability;
 using TogglPotato.WebAPI.StartupTests;
 using TogglPotato.WebAPI.Validators;
-
-// Define some important constants and the activity source.
-// These can come from a config file, constants file, etc.
-string serviceName = "TogglPotato.WebAPI";
-string serviceVersion = "1.0.0";
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container:
 
 // Add OpenTelemetry.
+string serviceName = "TogglPotato.WebAPI";
+string serviceVersion = "1.0.0";
+ActivitySource appActivitySource = new ActivitySource(serviceName, serviceVersion);
+builder.Services.AddSingleton<ActivitySource>(appActivitySource);
+Meter appMeter = new Meter(serviceName, serviceVersion);
+builder.Services.AddSingleton<Meter>(appMeter);
+builder.Services.AddSingleton<Metrics>();
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(builder => builder.AddService(serviceName: serviceName, serviceVersion: serviceVersion))
     .WithTracing(builder =>
@@ -35,6 +40,7 @@ builder.Services.AddOpenTelemetry()
     {
         builder.AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
+            .AddMeter(appMeter.Name)
             .AddConsoleExporter();
     });
 

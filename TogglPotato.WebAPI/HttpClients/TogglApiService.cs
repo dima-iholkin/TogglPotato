@@ -8,22 +8,28 @@ using TogglPotato.WebAPI.HttpClients.ErrorHandling;
 using TogglPotato.WebAPI.HttpClients.ErrorHandling.Models;
 using TogglPotato.WebAPI.HttpClients.Helpers;
 using TogglPotato.WebAPI.HttpClients.Models;
+using TogglPotato.WebAPI.Observability;
 
 namespace TogglPotato.WebAPI.HttpClients;
 
 public class TogglApiService : ITogglApiService
 {
-    private readonly HttpClient _httpClient;
-    private readonly GlobalTimeService _timeService;
-    private readonly ILogger<TogglApiService> _logger;
-
-    public TogglApiService(HttpClient httpClient, GlobalTimeService timeService, ILogger<TogglApiService> logger)
+    public TogglApiService(
+        HttpClient httpClient, GlobalTimeService timeService, ILogger<TogglApiService> logger, Metrics metrics
+    )
     {
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri("https://api.track.toggl.com");
+
         _timeService = timeService;
         _logger = logger;
+        _metrics = metrics;
     }
+
+    private readonly HttpClient _httpClient;
+    private readonly GlobalTimeService _timeService;
+    private readonly ILogger<TogglApiService> _logger;
+    private readonly Metrics _metrics;
 
     public async Task<OneOf<UserProfile, TogglApiErrorResult>> GetUserProfileAsync(
         TogglApiKey togglApiKey, CancellationToken cancellationToken
@@ -177,6 +183,8 @@ public class TogglApiService : ITogglApiService
         {
             if (te.Modified == true)
             {
+                _metrics.timeEntriesModified.Add(1);
+
                 OneOf<TimeEntry, TogglApiErrorResult> updateResult = await this.UpdateTimeEntryAsync(te, togglApiKey);
 
                 if (updateResult.IsT1)
@@ -188,6 +196,8 @@ public class TogglApiService : ITogglApiService
             }
             else
             {
+                _metrics.timeEntriesNotModified.Add(1);
+
                 responseTimeEntries.Add(te);
             }
         }
