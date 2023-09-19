@@ -1,9 +1,11 @@
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
 using Asp.Versioning.Builder;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Swashbuckle.AspNetCore.Filters;
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Reflection;
 using TogglPotato.WebAPI.Domain.AppService;
 using TogglPotato.WebAPI.Domain.Services;
 using TogglPotato.WebAPI.Domain.Validators;
@@ -11,6 +13,7 @@ using TogglPotato.WebAPI.Endpoints;
 using TogglPotato.WebAPI.Endpoints.OrganizeDailyTimeEntries;
 using TogglPotato.WebAPI.HttpClients;
 using TogglPotato.WebAPI.HttpClients.Retries;
+using TogglPotato.WebAPI.Infrastructure.Swagger;
 using TogglPotato.WebAPI.Observability;
 using TogglPotato.WebAPI.StartupTests;
 using TogglPotato.WebAPI.Validators;
@@ -46,7 +49,15 @@ builder.Services.AddOpenTelemetry()
 
 // Add Swagger/OpenAPI.
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.ExampleFilters();
+    options.DocumentFilter<SwaggerVersionMapping>();
+
+    string xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
+builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
 
 // Add the API Versioning.
 builder.Services.AddApiVersioning();
@@ -74,7 +85,15 @@ RouteGroupBuilder apiV1 = versionedApi.MapGroup("/api/v{version:apiVersion}").Ha
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        // Remove schemas.
+        options.DefaultModelsExpandDepth(-1);
+
+        // Set the Swagger UI as the home page "/".
+        options.RoutePrefix = string.Empty;
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "TogglPotato API v1");
+    });
 }
 
 EndpointsRouter.Map(apiV1);
