@@ -35,7 +35,7 @@ Please do not give away your Toggl API token to untrustworthy parties, as it wou
 2. ```dotnet run``` it or use VS Code or VS 2022 to start it.
 3. Use Postman, cURL or any other HTTP client to make a request using the provided above HTTP request template.
 
-At the moment the app requires **.NET 8 Preview 7**.
+At the moment the app requires a **.NET 8 Preview** or newer.
 
 ## License information
 
