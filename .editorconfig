@@ -1,46 +1,69 @@
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
+# All files
+[*]
+indent_style = space
+
+# Xml files
+[*.xml]
+indent_size = 2
+
 # C# files
 [*.cs]
 
 #### Core EditorConfig Options ####
 
 # Indentation and spacing
-# indent_size = 4
-# indent_style = space
-# tab_width = 4
+indent_size = 4
+tab_width = 4
+
+# New line preferences
+end_of_line = crlf
+insert_final_newline = false
 
 #### .NET Coding Conventions ####
+[*.{cs,vb}]
+
+# Organize usings
+dotnet_separate_import_directive_groups = false
+dotnet_sort_system_directives_first = true
+file_header_template = unset
 
 # this. and Me. preferences
 dotnet_style_qualification_for_method = true
+
+# Warning on unused variables
+csharp_style_unused_value_assignment_preference = discard_variable:warning
 
 #### Diagnostic configuration ####
 
 # CA1000: Do not declare static members on generic types
 dotnet_diagnostic.CA1000.severity = warning
 
-# IDE0090: Simplify "new" expression
-dotnet_diagnostic.IDE0090.severity = none
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none
+
+# IDE0001: Name can be simplified
+dotnet_diagnostic.IDE0001.severity = info
+
+# IDE0003: "this." can be simplified
+dotnet_diagnostic.IDE0003.severity = none
 
 # IDE0034: "default" expression can be simplified
 dotnet_diagnostic.IDE0034.severity = none
 
+# IDE0059: Unnecessary assignment of a value
+dotnet_diagnostic.IDE0059.severity = warning
+
 # IDE0063: "using" statement can be simplified
 dotnet_diagnostic.IDE0063.severity = none
 
-# IDE0003: "this." can be simplified
-dotnet_diagnostic.IDE0003.severity = none
+# IDE0090: Simplify "new" expression
+dotnet_diagnostic.IDE0090.severity = none
 
 # IDE0270: Null check can be simplified
 dotnet_diagnostic.IDE0270.severity = none
 
 # IDE0290: Use primary constructor
 dotnet_diagnostic.IDE0290.severity = none
-
-# IDE0059: Unnecessary assignment of a value
-dotnet_diagnostic.IDE0059.severity = warning
-
-# CS1591: Missing XML comment for publicly visible type or member
-dotnet_diagnostic.CS1591.severity = none
