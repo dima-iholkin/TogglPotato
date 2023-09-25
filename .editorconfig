@@ -156,7 +156,7 @@ dotnet_diagnostic.CA1000.severity = warning
 dotnet_diagnostic.CS1591.severity = none
 
 # IDE0001: Name can be simplified
-dotnet_diagnostic.IDE0001.severity = info
+dotnet_diagnostic.IDE0001.severity = silent
 
 # IDE0003: "this." can be simplified
 dotnet_diagnostic.IDE0003.severity = none
@@ -182,4 +182,4 @@ dotnet_diagnostic.IDE0290.severity = none
 #### Custom workflows ####
 
 # Show the memory allocation perf problems by ClrHeapAllocationAnalyzer.
-dotnet_analyzer_diagnostic.category-performance.severity = suggestion
+dotnet_analyzer_diagnostic.category-performance.severity = silent
