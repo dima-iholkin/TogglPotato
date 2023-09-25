@@ -1,5 +1,5 @@
 # <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Flag_of_Ukraine.svg/1920px-Flag_of_Ukraine.svg.png" width="32" alt="Ukrainian flag"> TogglPotato utility for Toggl users
-========
+
 [![CI](https://github.com/dima-iholkin/TogglPotato/actions/workflows/CI.yml/badge.svg)](https://github.com/dima-iholkin/TogglPotato/actions/workflows/CI.yml)
 
 This is a small utility to organize your Toggl daily time entries over the daily 24 hour period.
