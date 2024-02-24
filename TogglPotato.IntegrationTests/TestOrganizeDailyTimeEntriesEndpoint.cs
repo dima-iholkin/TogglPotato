@@ -21,7 +21,7 @@ public class TestOrganizeDailyTimeEntriesEndpoint
         using HttpClient client = application.CreateClient();
 
         RequestBody requestBody = new RequestBody(
-            togglApiKey, Date: new DateOnly(2023, 9, 12)
+            togglApiKey, Date: new DateOnly(2024, 1, 31)
         );
         HttpResponseMessage result = await client.PostAsJsonAsync("/api/v1/organize_daily_time_entries", requestBody);
 

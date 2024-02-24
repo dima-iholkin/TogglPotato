@@ -119,6 +119,7 @@ public class TogglApiService : ITogglApiService
         timeEntries.ForEach(te =>
         {
             te.Start = te.Start.ToUniversalTime();
+            te.Stop = te.Stop.ToUniversalTime();
         });
 
         return timeEntries;
